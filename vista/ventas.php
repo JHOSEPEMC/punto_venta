@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="container mt-4">
-    <h2>VENTAS REALISADAS</h2>
+    <h2>VENTAS REALIZADAS</h2>
     <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead class="table-dark">
@@ -25,6 +25,10 @@
         </thead>
         <tbody>
         <?php 
+        session_start(); //Inicia la Sesion LOL
+        $carritoTotal = isset($_SESSION['totalCarrito']) ? $_SESSION['totalCarrito'] : null; //si carrito existe ya en session, lo vaceamos
+        if($carritoTotal != null){$_SESSION['totalCarrito'] = null;}
+        
         // para conectarse con la base de datos :SillyDev:
         require_once '../source/models/Conexion.php';
         $bd = Conexion::conectar();
@@ -40,7 +44,6 @@
         ON ventas.dni_cliente = clientes.dni_cliente
         "; #Consulta para el sql :SillyDev:
         $ventas = $bd->query($sql); //hacer la consulta a nuestra base de datos con el $sql
-        //$usuarios = $resultado->fetch_assoc()['COUNT(usuario)'];
         foreach ($ventas as $venta): ?>
         <tr>
             <td><?= $venta['id_venta'] ?></td>

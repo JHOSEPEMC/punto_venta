@@ -9,6 +9,7 @@
         <li class="nav-item"><a class="nav-link" href="caja.php">Caja</a></li>
         <li class="nav-item"><a class="nav-link" href="ventas.php">Ventas</a></li>
         <li class="nav-item"><a class="nav-link" href="inventario.php">Listado de Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
         </ul>
     </div>
     </div>

@@ -24,6 +24,10 @@
         </thead>
         <tbody>
         <?php 
+        session_start(); //Inicia la Sesion LOL
+        $carritoTotal = isset($_SESSION['totalCarrito']) ? $_SESSION['totalCarrito'] : null; //si carrito existe ya en session, lo vaceamos
+        if($carritoTotal != null){$_SESSION['totalCarrito'] = null;}
+        
         // para conectarse con la base de datos :SillyDev:
         require_once '../source/models/Conexion.php';
         require_once '../source/models/Producto.php';
@@ -34,7 +38,6 @@
         FROM productos;
         "; #Consulta para el sql :SillyDev:
         $productos = $bd->query($sql); //hacer la consulta a nuestra base de datos con el $sql
-        //$usuarios = $resultado->fetch_assoc()['COUNT(usuario)'];
         foreach ($productos as $producto): ?>
         <tr>
             <td><?= $producto['id_producto'] ?></td>

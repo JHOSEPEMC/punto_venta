@@ -12,6 +12,6 @@ h2{
     background-color: rgb(255, 120, 0);
     text-align: center;
     font-family: cursive;
-    border-radius: 50%;
+    border-radius: 10%;
     border-style: dashed;
 }
