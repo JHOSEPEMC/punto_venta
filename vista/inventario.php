@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="desing.css">
+    <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
     <div class="container mt-4">
@@ -15,18 +15,20 @@
     <table class="table table-striped table-hover">
         <thead class="table-dark">
         <tr>
-            <th>ID</th>
-            <th>PRODUCTO</th>
-            <th>CATEGORIA</th>
-            <th>PRECIO</th>
-            <th>STOCK</th>
+            <th style="background-color: orange;">ID</th>
+            <th style="background-color: orange;">PRODUCTO</th>
+            <th style="background-color: orange;">CATEGORIA</th>
+            <th style="background-color: orange;">PRECIO</th>
+            <th style="background-color: orange;">STOCK</th>
         </tr>
         </thead>
         <tbody>
         <?php 
         // para conectarse con la base de datos :SillyDev:
-        require_once '../source/models/Conexion.php'; // "importamos" el database.php
-        $bd = Conexion::conectar(); //conectamos
+        require_once '../source/models/Conexion.php';
+        require_once '../source/models/Producto.php';
+        $pdto = new Producto();
+        $bd = Conexion::conectar();
         $sql = "
         SELECT *
         FROM productos;
@@ -37,9 +39,9 @@
         <tr>
             <td><?= $producto['id_producto'] ?></td>
             <td><?= htmlspecialchars($producto['nombre_producto']) ?></td>
-            <td><?= htmlspecialchars($producto['id_categoria']) ?></td>
-            <td><?= htmlspecialchars($producto['precio_unitario']) ?></td>
-            <td>$<?= number_format($producto['stock'], 2) ?></td>
+            <td><?= htmlspecialchars($pdto->obtener_categoria($producto['id_producto'])) ?></td>
+            <td>S/. <?= htmlspecialchars($producto['precio_unitario']) ?></td>
+            <td><?= number_format($producto['stock'], 0) ?></td>
         </tr>
         <?php endforeach; ?>
         </tbody>
