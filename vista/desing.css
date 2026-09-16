@@ -7,3 +7,11 @@ h1{
 body{
     background-color: rgb(255, 240, 200);
 }
+h2{
+    font-family: cursive;
+    border-radius: 50%;
+}
+th{
+    background-color: orange;
+    color: white;
+}
