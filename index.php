@@ -18,6 +18,11 @@ $inicio = new Main();
 </head>
 <body>
     <h1>💸 Sistema de Punto de Venta 💸</h1>
+
+    <div>
+        <img src="assets/icono-transparent.webp" alt="Logo de Punto Venta">
+    </div>
+    
 </body>
 </html>
 <?php 
