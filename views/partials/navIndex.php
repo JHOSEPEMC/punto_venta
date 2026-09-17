@@ -6,10 +6,10 @@
     </button>   
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="vista/caja.php">Caja</a></li>
-        <li class="nav-item"><a class="nav-link" href="vista/ventas.php">Ventas</a></li>
-        <li class="nav-item"><a class="nav-link" href="vista/inventario.php">Listado de Productos</a></li>
-        <li class="nav-item"><a class="nav-link" href="vista/login.php">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="views/caja.php">Caja</a></li>
+        <li class="nav-item"><a class="nav-link" href="views/ventas.php">Ventas</a></li>
+        <li class="nav-item"><a class="nav-link" href="views/inventario.php">Listado de Productos</a></li>
+        <li class="nav-item"><a class="nav-link" href="views/login.php">Login</a></li>
         </ul>
     </div>
     </div>

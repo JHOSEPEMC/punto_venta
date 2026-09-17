@@ -1,9 +1,9 @@
 <?php 
-include('vista/partials/header.php');
-include('vista/partials/navIndex.php');
-require_once('source/Main.php');
-require_once('source/models/Conexion.php');
-require_once('source/models/Producto.php');
+include('views/partials/header.php');
+include('views/partials/navIndex.php');
+require_once('Main.php');
+require_once('models/Conexion.php');
+require_once('models/Producto.php');
 
 $inicio = new Main();
 ?>
@@ -19,12 +19,12 @@ $inicio = new Main();
 <body>
     <h1>💸 Sistema de Punto de Venta 💸</h1>
 
-    <div>
+    <div style="text-align: center;">
         <img src="assets/icono-transparent.webp" alt="Logo de Punto Venta">
     </div>
     
 </body>
 </html>
 <?php 
-include('vista/partials/footer.php');
+include('views/partials/footer.php');
 ?>

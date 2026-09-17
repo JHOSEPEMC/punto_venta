@@ -30,7 +30,7 @@
         if($carritoTotal != null){$_SESSION['totalCarrito'] = null;}
         
         // para conectarse con la base de datos :SillyDev:
-        require_once '../source/models/Conexion.php';
+        require_once '../models/Conexion.php';
         $bd = Conexion::conectar();
         $sql = "
         SELECT ventas.id_venta, empleados.nombre_apellido as empleado, clientes.nombre_apellido as cliente,

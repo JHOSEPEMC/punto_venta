@@ -1,7 +1,7 @@
 <?php include('partials/header.php'); ?>
 <?php include('partials/nav.php');
-    require_once('../source/models/Empleado.php');
-    require_once '../source/models/Conexion.php'; // "importamos" la conexion.php
+    require_once('../models/Empleado.php');
+    require_once '../models/Conexion.php'; // "importamos" la conexion.php
 
     session_start(); //Inicia la Sesion LOL
     

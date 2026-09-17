@@ -31,7 +31,7 @@
             
         }
         else{
-            require_once '../source/models/Conexion.php'; // "importamos" la conexion.php
+            require_once '../models/Conexion.php'; // "importamos" la conexion.php
             $db = Conexion::conectar(); //conectamos
             $sql = "SELECT * FROM empleados WHERE dni_empleado = '$usuario' AND pass = '$contra'"; 
             #Consulta para el sql :SillyDev:
