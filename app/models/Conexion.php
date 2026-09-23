@@ -1,6 +1,6 @@
 <?php
 class Conexion {
-    // Conexión a la base de datos
+    //Conexión a la base de datos
     public static function conectar(){
         $conexion = new mysqli('localhost', 'root', '', 'minimarket');
         if($conexion->connect_error){

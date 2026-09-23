@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/Usuario.php';
 
-class Empleado extends Usuario { // Herencia
+class Empleado extends Usuario { //Herencia
     private $telefono;
 
     public function __construct($nombre, $telefono) {
@@ -9,7 +9,7 @@ class Empleado extends Usuario { // Herencia
         $this->telefono = $telefono;
     }
 
-    // Polimorfismo
+    //Polimorfismo
     public function ob_nombre(){
         return "Nombre-Empleado: " . $this->nombre . "<br>Telefono: " . $this->telefono;
     }

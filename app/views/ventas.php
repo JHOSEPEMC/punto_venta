@@ -19,10 +19,29 @@
                 <?php foreach ($ventas as $venta): ?>
                     <tr>
                         <td><?= $venta['id_venta'] ?></td>
-                        <td><?= htmlspecialchars($venta['empleado']) ?></td>
-                        <td><?= htmlspecialchars($venta['cliente']) ?></td>
-                        <td><?= htmlspecialchars($venta['producto']) ?></td>
-                        <td><?= htmlspecialchars($venta['cantidad']) ?></td>
+
+                        <!-- Empleado: si fue eliminado, mostramos "fuera del sistema" -->
+                        <td>
+                            <?= $venta['empleado'] === null
+                                ? 'fuera del sistema'
+                                : htmlspecialchars($venta['empleado']) ?>
+                        </td>
+
+                        <!-- Cliente: si fue eliminado, mostramos DNI + "fuera del sistema" -->
+                        <td>
+                            <?= $venta['cliente'] === null
+                                ? htmlspecialchars($venta['dni_cliente']) . ' | fuera del sistema'
+                                : htmlspecialchars($venta['cliente']) ?>
+                        </td>
+
+                        <!-- Producto: si fue eliminado, mostramos "fuera del sistema" -->
+                        <td>
+                            <?= $venta['producto'] === null
+                                ? 'Producto ID ' . $venta['id_producto'] . ' | fuera del sistema'
+                                : htmlspecialchars($venta['producto']) ?>
+                        </td>
+
+                        <td><?= $venta['cantidad'] ?></td>
                         <td><?= htmlspecialchars($venta['fecha_venta']) ?></td>
                     </tr>
                 <?php endforeach; ?>

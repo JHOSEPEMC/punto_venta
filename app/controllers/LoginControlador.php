@@ -1,6 +1,6 @@
 <?php
 class LoginControlador {
-    // Muestra el login y valida credenciales
+    //Muestra el login y valida credenciales
     public function iniciar_sesion(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -19,12 +19,23 @@ class LoginControlador {
             } else {
                 $_SESSION['UsuarioDni']    = $usuarioLogueado['dni_empleado'];
                 $_SESSION['UsuarioContra'] = $usuarioLogueado['pass'];
-                // Redirige a caja tras login
+                //Redirige a caja tras login
                 header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
                 exit;
             }
         }
 
         require_once APP_PATH . '/views/login.php';
+    }
+
+    //Cierra solo la sesión del empleado (no toca la del admin)
+    public function cerrar_sesion(){
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
+        unset($_SESSION['UsuarioDni']);
+        unset($_SESSION['UsuarioContra']);
+
+        header('Location: ' . BASE_URL . 'index.php?controller=home&action=mostrar');
+        exit;
     }
 }

@@ -4,7 +4,7 @@ require_once __DIR__ . '/Usuario.php';
 class Administrador extends Usuario {
     private $telefono;
 
-    // Corregido: antes era private
+    //Corregido: antes era private
     public function __construct($nombre, $telefono) {
         parent::__construct($nombre);
         $this->telefono = $telefono;
