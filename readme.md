@@ -1,1 +1,1 @@
-Codificacion para el sistema
+Estructura MVC

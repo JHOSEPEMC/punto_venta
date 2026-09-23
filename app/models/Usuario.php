@@ -1,12 +1,14 @@
 <?php
-class Usuario{
+class Usuario {
     public $nombre = "";
+
+    // Constructor con nombre
     public function __construct($name){
         $this->nombre = $name;
     }
 
-    public function ob_nombre(){ //Obtener nombre del usuario
+    // Devuelve el nombre
+    public function ob_nombre(){
         return $this->nombre;
     }
 }
-?>
