@@ -6,6 +6,8 @@ class Producto {
         $this->bd = Conexion::conectar();
     }
 
+    //CONSULTAS BÁSICAS
+
     public function obtener_info($id){
         $sql = "
             SELECT productos.nombre_producto as nameProducto,
@@ -43,22 +45,25 @@ class Producto {
         return $this->bd->query($sql)->fetch_assoc()['stock'];
     }
 
+    //Devuelve todos los productos (para inventario y admin)
     public function obtener_todos(){
         return $this->bd->query("SELECT * FROM productos");
     }
 
-    //═══════════════════════════════════════════════════════
-    //MÉTODOS NUEVOS (panel de admin)
-    //═══════════════════════════════════════════════════════
+    //Devuelve un producto completo por ID
+    public function obtener_por_id($id){
+        $sql = "SELECT * FROM productos WHERE id_producto = " . (int)$id;
+        return $this->bd->query($sql)->fetch_assoc();
+    }
 
-    //Inserta un producto (id_producto es AUTO_INCREMENT)
+    //INSERT / UPDATE / DELETE (panel admin)
+
     public function insertar($nombre, $id_categoria, $precio, $stock){
         $sql = "INSERT INTO productos (nombre_producto, id_categoria, precio_unitario, stock)
                 VALUES ('$nombre', '$id_categoria', '$precio', '$stock')";
         return $this->bd->query($sql);
     }
 
-    //Actualiza un producto
     public function actualizar($id, $nombre, $id_categoria, $precio, $stock){
         $sql = "UPDATE productos
                 SET nombre_producto = '$nombre',
@@ -69,26 +74,27 @@ class Producto {
         return $this->bd->query($sql);
     }
 
-    //Elimina un producto
     public function eliminar($id){
         $sql = "DELETE FROM productos WHERE id_producto = " . (int)$id;
         return $this->bd->query($sql);
     }
 
-    //Devuelve todas las categorías (para el <select>)
+    //CONSULTAS ESPECIALES
+
     public function obtener_categorias(){
         return $this->bd->query("SELECT * FROM categorias");
     }
 
-    //Verifica si ya existe un producto con ese nombre
     public function existe_nombre($nombre){
         $sql = "SELECT id_producto FROM productos WHERE nombre_producto = '$nombre'";
         return $this->bd->query($sql)->fetch_assoc() != null;
     }
 
-    //Devuelve un producto completo por ID
-    public function obtener_por_id($id){
-        $sql = "SELECT * FROM productos WHERE id_producto = " . (int)$id;
-        return $this->bd->query($sql)->fetch_assoc();
+    //Nuevo: descuenta stock de un producto
+    public function descontar_stock($id, $cantidad){
+        $sql = "UPDATE productos
+                SET stock = stock - " . (int)$cantidad . "
+                WHERE id_producto = " . (int)$id;
+        return $this->bd->query($sql);
     }
 }

@@ -1,7 +1,6 @@
 <?php
 class AdminLoginControlador {
 
-    //Muestra el login de admin y procesa las credenciales
     public function iniciar_sesion(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -10,11 +9,9 @@ class AdminLoginControlador {
         $mensaje = false;
 
         if ($dni !== '' && $contra !== '') {
-            require_once APP_PATH . '/models/Conexion.php';
-            $bd = Conexion::conectar();
-
-            $sql = "SELECT * FROM administradores WHERE dni_administrador = '$dni'";
-            $admin = $bd->query($sql)->fetch_assoc();
+            //SQL ya NO está aquí. El modelo Administrador se encarga.
+            $adm = new Administrador();
+            $admin = $adm->obtener_por_dni($dni);
 
             //password_verify valida contra el hash guardado
             if ($admin && password_verify($contra, $admin['pass'])) {

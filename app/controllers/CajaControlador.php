@@ -1,23 +1,24 @@
 <?php
 class CajaControlador {
-    //Muestra el formulario y procesa la venta
+
     public function mostrar(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Empleado.php';
-
-        //Verificar login
+        //Verificar login del empleado
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
             echo '<div class="container mt-4"><h2>Debes <a href="' . BASE_URL . 'index.php?controller=login&action=iniciar_sesion">Iniciar Sesion</a></h2></div>';
             return;
         }
 
-        $bd = Conexion::conectar();
-        $sql = "SELECT nombre_apellido, telefono FROM empleados WHERE dni_empleado = '$userDNI'";
-        $fila = $bd->query($sql)->fetch_assoc();
-        $empleado = new Empleado($fila['nombre_apellido'], $fila['telefono']);
+        //SQL ya NO está aquí. Todos usan modelos.
+        $emp = new Empleado();
+        $empData = $emp->obtener_por_dni($userDNI);
+        $empleado = new Empleado($empData['nombre_apellido'], $empData['telefono']);
+
+        $cli = new Cliente();
+        $pdto = new Producto();
+        $venta = new Venta();
 
         //Datos del formulario
         $clienteDNI = isset($_POST['ClienteDni']) ? trim($_POST['ClienteDni']) : '';
@@ -32,14 +33,12 @@ class CajaControlador {
         //Procesar si se envió el formulario
         if ($clienteDNI !== '') {
             //Verificar cliente
-            $sql = "SELECT * FROM clientes WHERE dni_cliente = '$clienteDNI'";
-            if ($bd->query($sql)->fetch_assoc()['dni_cliente'] == null) {
+            if (!$cli->existe($clienteDNI)) {
                 $mensajeError = 'No hay cliente registrado con este dni';
             }
 
             //Verificar producto
-            $sql = "SELECT * FROM productos WHERE id_producto = $idProducto";
-            $productoFila = $bd->query($sql)->fetch_assoc();
+            $productoFila = $pdto->obtener_por_id($idProducto);
             if (!$mensajeError && $productoFila == null) {
                 $mensajeError = 'No hay producto con este ID';
             }
@@ -60,17 +59,16 @@ class CajaControlador {
 
                 $_SESSION['totalCarrito'] = $total + ($cantidad * (float)$productoFila['precio_unitario']);
 
-                //Actualizar stock
-                $bd->query("UPDATE productos SET stock = stock - '$cantidad' WHERE id_producto = '$idProducto'");
+                //Descontar stock
+                $pdto->descontar_stock($idProducto, $cantidad);
 
                 //Insertar venta
                 $fecha = date("Y/m/d");
-                $sql = "INSERT INTO ventas(dni_empleado, dni_cliente, id_producto, cantidad, fecha_venta)
-                        VALUES ('$userDNI', '$clienteDNI', '$idProducto', '$cantidad', '$fecha')";
-                $bd->query($sql);
+                $venta->insertar($userDNI, $clienteDNI, $idProducto, $cantidad, $fecha);
 
-                $sql = "SELECT * FROM clientes WHERE dni_cliente = '$clienteDNI'";
-                $nombreCliente = $bd->query($sql)->fetch_assoc()['nombre_apellido'];
+                //Obtener nombre del cliente
+                $clienteData = $cli->obtener_por_dni($clienteDNI);
+                $nombreCliente = $clienteData['nombre_apellido'];
 
                 $ventaRegistrada = true;
             }
