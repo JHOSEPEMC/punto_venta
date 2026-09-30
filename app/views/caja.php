@@ -3,37 +3,96 @@
 
 <div class="container mt-4">
     <h2>Caja</h2>
-    <form action="<?= BASE_URL ?>index.php?controller=caja&action=mostrar" method="POST">
-        <span>Cliente (DNI): </span><br>
-        <input class='i_s' type="text" required placeholder="12345678" name="ClienteDni"><br><br>
 
-        <span>Producto (ID): </span><br>
-        <input class='i_s' type="text" required placeholder="1" name="IdProducto"><br><br>
+    <?php if (isset($_SESSION['mensajeCaja'])): ?>
+        <!--muestra mensaje de error si existe-->
+        <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['mensajeCaja']) ?></div>
+        <?php unset($_SESSION['mensajeCaja']); ?>
+    <?php endif; ?>
 
-        <span>Cantidad: </span><br>
-        <input class='retiro_f' type="number" required placeholder="1" name="Cantidad"><br><br>
+    <!--FORMULARIO PARA SELECCIONAR CLIENTE Y AGREGAR PRODUCTOS-->
+    <form action="<?= BASE_URL ?>index.php?controller=caja&action=agregar" method="POST">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Cliente:</label>
+                <select class="form-control" name="ClienteDni" required>
+                    <option value="">-- Selecciona cliente --</option>
+                    <?php foreach ($clientes as $c): ?>
+                        <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <button type="submit" class="i_s">Agregar</button>
+            <div class="col-md-4">
+                <label>Producto:</label>
+                <select class="form-control" name="IdProducto" required>
+                    <option value="">-- Selecciona producto --</option>
+                    <?php foreach ($productos as $p): ?>
+                        <option value="<?= $p['id_producto'] ?>">
+                            <?= htmlspecialchars($p['nombre_producto']) ?> - S/. <?= $p['precio_unitario'] ?>
+                            (stock: <?= $p['stock'] ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label>Cantidad:</label>
+                <input class="form-control" type="number" name="Cantidad" min="1" value="1" required>
+            </div>
+
+            <div class="col-md-2">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-primary form-control">Agregar</button>
+            </div>
+        </div>
     </form>
 
-    <?php if (!empty($mensajeError)): ?>
-        <h3><?= htmlspecialchars($mensajeError) ?></h3>
-    <?php endif; ?>
+    <hr>
 
-    <?php if (isset($_SESSION['totalCarrito']) && $_SESSION['totalCarrito'] > 0): ?>
-        <br><hr>
-        <h2 style="background-color: rgb(255, 100, 0);">
-            TOTAL COMPRA: S/ <?= $_SESSION['totalCarrito'] ?>
-        </h2>
-    <?php endif; ?>
+    <!--TABLA DEL CARRITO-->
+    <?php if (!empty($items)): ?>
+        <h4>Productos en el carrito</h4>
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th style="background-color: orange;">Producto</th>
+                    <th style="background-color: orange;">Cantidad</th>
+                    <th style="background-color: orange;">Precio</th>
+                    <th style="background-color: orange;">Subtotal</th>
+                    <th style="background-color: orange;">Quitar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $item): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($item['nombre']) ?></td>
+                        <td><?= $item['cantidad'] ?></td>
+                        <td>S/. <?= number_format($item['precio'], 2) ?></td>
+                        <td>S/. <?= number_format($item['precio'] * $item['cantidad'], 2) ?></td>
+                        <td>
+                            <a href="<?= BASE_URL ?>index.php?controller=caja&action=quitar&id=<?= $item['id_producto'] ?>"
+                                class="btn btn-danger btn-sm">X</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
 
-    <?php if ($ventaRegistrada): ?>
-        <h4>
-            <?= $empleado->ob_nombre() ?>:<br>
-            A registrado una venta con el cliente: <hr>
-            <?= htmlspecialchars($nombreCliente) ?>
-            | <a href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar">Observar venta</a>
-        </h4>
+        <h3>Total: S/. <?= number_format($total, 2) ?></h3>
+
+        <!--BOTONES DE CONFIRMAR Y VACIAR-->
+        <a href="<?= BASE_URL ?>index.php?controller=caja&action=confirmar"
+            class="btn btn-success"
+            onclick="return confirm('¿Confirmar la venta?');">Confirmar Venta</a>
+        <a href="<?= BASE_URL ?>index.php?controller=caja&action=vaciar"
+            class="btn btn-warning"
+            onclick="return confirm('¿Vaciar el carrito?');">Vaciar Carrito</a>
+
+    <?php else: ?>
+        <p>No hay productos en el carrito.</p>
     <?php endif; ?>
 </div>
 

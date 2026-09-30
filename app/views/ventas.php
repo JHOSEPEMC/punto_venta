@@ -3,6 +3,11 @@
 
 <div class="container mt-4">
     <h2>VENTAS REALIZADAS</h2>
+
+    <!--botón para exportar a Excel-->
+    <a href="<?= BASE_URL ?>index.php?controller=excel&action=ventas"
+        class="btn btn-success mb-3">📊 Exportar a Excel</a>
+
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead class="table-dark">
@@ -19,28 +24,21 @@
                 <?php foreach ($ventas as $venta): ?>
                     <tr>
                         <td><?= $venta['id_venta'] ?></td>
-
-                        <!-- Empleado: si fue eliminado, mostramos "fuera del sistema" -->
                         <td>
                             <?= $venta['empleado'] === null
                                 ? 'fuera del sistema'
                                 : htmlspecialchars($venta['empleado']) ?>
                         </td>
-
-                        <!-- Cliente: si fue eliminado, mostramos DNI + "fuera del sistema" -->
                         <td>
                             <?= $venta['cliente'] === null
                                 ? htmlspecialchars($venta['dni_cliente']) . ' | fuera del sistema'
                                 : htmlspecialchars($venta['cliente']) ?>
                         </td>
-
-                        <!-- Producto: si fue eliminado, mostramos "fuera del sistema" -->
                         <td>
                             <?= $venta['producto'] === null
                                 ? 'Producto ID ' . $venta['id_producto'] . ' | fuera del sistema'
                                 : htmlspecialchars($venta['producto']) ?>
                         </td>
-
                         <td><?= $venta['cantidad'] ?></td>
                         <td><?= htmlspecialchars($venta['fecha_venta']) ?></td>
                     </tr>
