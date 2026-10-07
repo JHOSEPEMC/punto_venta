@@ -1,33 +1,34 @@
 <?php
-use Dompdf\Dompdf;
-use Dompdf\Options;
-
 class BoletaControlador {
 
+    //muestra el PDF de la boleta en el navegador
     public function mostrar(){
         $this->generar_pdf(false);
     }
 
+    //descarga el PDF de la boleta
     public function descargar(){
         $this->generar_pdf(true);
     }
 
+    //método privado que prepara los datos y usa el servicio PdfService
     private function generar_pdf($descargar){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        //recibe el id de la boleta
+        //recibe el id de la boleta desde la URL
         $id_boleta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+        //si no hay id, redirige al listado de ventas
         if ($id_boleta === 0) {
             header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
             exit;
         }
 
-        //carga modelos
+        //instancia modelos
         $boletaModel = new Boleta();
         $ventaModel  = new Venta();
 
-        //obtiene la cabecera y el detalle
+        //obtiene la cabecera y el detalle de la boleta
         $cabecera = $boletaModel->obtener_por_id($id_boleta);
         if (!$cabecera) {
             header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
@@ -36,7 +37,7 @@ class BoletaControlador {
 
         $detalle = $ventaModel->obtener_por_boleta($id_boleta);
 
-        //arma la estructura para la vista
+        //arma la estructura que la vista necesita
         $boleta = [
             'numero_boleta' => $cabecera['numero_boleta'],
             'fecha'         => $cabecera['fecha_emision'],
@@ -47,6 +48,7 @@ class BoletaControlador {
             'total'         => $cabecera['total'],
         ];
 
+        //recorre el detalle y calcula subtotales
         while ($fila = $detalle->fetch_assoc()) {
             $boleta['items'][] = [
                 'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
@@ -56,23 +58,14 @@ class BoletaControlador {
             ];
         }
 
-        //carga Dompdf
-        require_once VENDOR_PATH . '/autoload.php';
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $dompdf = new Dompdf($options);
-
-        //captura el HTML de la vista
+        //captura el HTML generado por la vista
         ob_start();
         include APP_PATH . '/views/boleta.php';
         $html = ob_get_clean();
 
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
-        $dompdf->stream($nombreArchivo, ['Attachment' => $descargar]);
+        //usa el servicio para generar el PDF
+        $pdf = new PdfService();
+        $pdf->generar($html, 'boleta_' . $boleta['numero_boleta'] . '.pdf', $descargar);
         exit;
     }
 }

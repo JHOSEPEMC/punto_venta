@@ -5,16 +5,16 @@
     <h2>Listado de Clientes (Admin)</h2>
 
     <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=agregarCliente" class="btn btn-success mb-3">+ Agregar Cliente</a>
-    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-secondary mb-3" style="background-color: orange; border-color: darkorange;">← Volver al panel</a>
+    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-naranja mb-3">← Volver al panel</a>
 
     <div class="table-responsive">
         <table class="table table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th style="background-color: orange;">DNI</th>
-                    <th style="background-color: orange;">Nombre</th>
-                    <th style="background-color: orange;">Teléfono</th>
-                    <th style="background-color: orange;">Acciones</th>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>

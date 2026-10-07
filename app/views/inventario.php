@@ -7,11 +7,11 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th style="background-color: orange;">ID</th>
-                    <th style="background-color: orange;">PRODUCTO</th>
-                    <th style="background-color: orange;">CATEGORIA</th>
-                    <th style="background-color: orange;">PRECIO</th>
-                    <th style="background-color: orange;">STOCK</th>
+                    <th>ID</th>
+                    <th>PRODUCTO</th>
+                    <th>CATEGORIA</th>
+                    <th>PRECIO</th>
+                    <th>STOCK</th>
                 </tr>
             </thead>
             <tbody>
@@ -19,7 +19,7 @@
                     <tr>
                         <td><?= $producto['id_producto'] ?></td>
                         <td><?= htmlspecialchars($producto['nombre_producto']) ?></td>
-                        <td><?= htmlspecialchars($pdto->obtener_categoria($producto['id_producto'])) ?></td>
+                        <td><?= htmlspecialchars($producto['nombre_catg']) ?></td>
                         <td>S/. <?= htmlspecialchars($producto['precio_unitario']) ?></td>
                         <td><?= number_format($producto['stock'], 0) ?></td>
                     </tr>

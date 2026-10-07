@@ -4,13 +4,11 @@
 <div class="container mt-4">
     <h2>Caja</h2>
 
-    <?php if (isset($_SESSION['mensajeCaja'])): ?>
-        <!--muestra mensaje de error si existe-->
-        <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['mensajeCaja']) ?></div>
-        <?php unset($_SESSION['mensajeCaja']); ?>
+    <?php if (!empty($mensajeCaja)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($mensajeCaja) ?></div>
     <?php endif; ?>
 
-    <!--FORMULARIO PARA SELECCIONAR CLIENTE Y AGREGAR PRODUCTOS-->
+    <!--formulario para seleccionar cliente y agregar productos-->
     <form action="<?= BASE_URL ?>index.php?controller=caja&action=agregar" method="POST">
         <div class="row">
             <div class="col-md-4">
@@ -45,24 +43,24 @@
 
             <div class="col-md-2">
                 <label>&nbsp;</label>
-                <button type="submit" class="btn btn-primary form-control">Agregar</button>
+                <button type="submit" class="btn btn-naranja form-control">Agregar</button>
             </div>
         </div>
     </form>
 
     <hr>
 
-    <!--TABLA DEL CARRITO-->
+    <!--tabla del carrito-->
     <?php if (!empty($items)): ?>
         <h4>Productos en el carrito</h4>
         <table class="table table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th style="background-color: orange;">Producto</th>
-                    <th style="background-color: orange;">Cantidad</th>
-                    <th style="background-color: orange;">Precio</th>
-                    <th style="background-color: orange;">Subtotal</th>
-                    <th style="background-color: orange;">Quitar</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Subtotal</th>
+                    <th>Quitar</th>
                 </tr>
             </thead>
             <tbody>
@@ -83,7 +81,7 @@
 
         <h3>Total: S/. <?= number_format($total, 2) ?></h3>
 
-        <!--BOTONES DE CONFIRMAR Y VACIAR-->
+        <!--botones de confirmar y vaciar-->
         <a href="<?= BASE_URL ?>index.php?controller=caja&action=confirmar"
             class="btn btn-success"
             onclick="return confirm('¿Confirmar la venta?');">Confirmar Venta</a>

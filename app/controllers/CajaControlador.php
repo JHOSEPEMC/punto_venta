@@ -3,7 +3,6 @@ class CajaControlador {
 
     //muestra la caja con el formulario y el carrito actual
     public function mostrar(){
-        //inicia la sesión si no está iniciada
         if (session_status() === PHP_SESSION_NONE) session_start();
 
         //verifica que el empleado esté logueado
@@ -16,25 +15,29 @@ class CajaControlador {
         //inicia el carrito si no existe
         Carrito::iniciar();
 
-        //instancia los modelos que vamos a usar
+        //instancia modelos
         $emp  = new Empleado();
         $cli  = new Cliente();
         $pdto = new Producto();
 
-        //obtiene los datos del empleado logueado
+        //obtiene datos del empleado logueado
         $empData = $emp->obtener_por_dni($userDNI);
         $empleado = new Empleado($empData['nombre_apellido'], $empData['telefono']);
 
-        //obtiene la lista completa de clientes y productos
+        //obtiene listas de clientes y productos
         $clientes = $cli->obtener_todos();
         $productos = $pdto->obtener_todos();
 
-        //obtiene el cliente seleccionado actualmente (si hay)
+        //obtiene cliente seleccionado actualmente
         $clienteActual = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';
 
-        //obtiene los items del carrito y el total
+        //obtiene items del carrito y total
         $items = Carrito::obtener();
         $total = Carrito::total();
+
+        //recoge el mensaje flash y limpia la sesión
+        $mensajeCaja = isset($_SESSION['mensajeCaja']) ? $_SESSION['mensajeCaja'] : '';
+        unset($_SESSION['mensajeCaja']);
 
         //carga la vista de la caja
         require_once APP_PATH . '/views/caja.php';

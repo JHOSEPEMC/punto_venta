@@ -2,12 +2,12 @@
 class Usuario {
     public $nombre = "";
 
-    //Constructor con nombre
-    public function __construct($name){
+    //constructor con nombre opcional para permitir instanciar sin argumentos
+    public function __construct($name = ''){
         $this->nombre = $name;
     }
 
-    //Devuelve el nombre
+    //devuelve el nombre del usuario
     public function ob_nombre(){
         return $this->nombre;
     }

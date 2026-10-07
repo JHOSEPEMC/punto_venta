@@ -5,18 +5,18 @@
     <h2>Listado de Productos (Admin)</h2>
 
     <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=agregarProducto" class="btn btn-success mb-3">+ Agregar Producto</a>
-    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-secondary mb-3" style="background-color: orange; border-color: darkorange;">← Volver al panel</a>
+    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-naranja mb-3">← Volver al panel</a>
 
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th style="background-color: orange;">ID</th>
-                    <th style="background-color: orange;">Nombre</th>
-                    <th style="background-color: orange;">ID Categoría</th>
-                    <th style="background-color: orange;">Precio</th>
-                    <th style="background-color: orange;">Stock</th>
-                    <th style="background-color: orange;">Acciones</th>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>ID Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>

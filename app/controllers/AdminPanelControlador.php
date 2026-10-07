@@ -11,8 +11,13 @@ class AdminPanelControlador {
     }
 
     //═══════════ PANEL PRINCIPAL ═══════════
+    //muestra el panel principal del admin
     public function mostrar(){
         $this->verificar_sesion();
+
+        //pasa el nombre del admin a la vista
+        $adminNombre = isset($_SESSION['AdminNombre']) ? $_SESSION['AdminNombre'] : 'Administrador';
+
         require_once APP_PATH . '/views/admin/panel.php';
     }
 
@@ -20,8 +25,6 @@ class AdminPanelControlador {
 
     public function listarProductos(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Producto.php';
 
         $pdto = new Producto();
         $productos = $pdto->obtener_todos();
@@ -31,8 +34,6 @@ class AdminPanelControlador {
 
     public function agregarProducto(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Producto.php';
 
         $pdto = new Producto();
         $categorias = $pdto->obtener_categorias();
@@ -67,8 +68,7 @@ class AdminPanelControlador {
 
     public function editarProducto(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Producto.php';
+        
 
         $pdto = new Producto();
         $id = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
@@ -109,8 +109,7 @@ class AdminPanelControlador {
 
     public function eliminarProducto(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Producto.php';
+        
 
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id > 0) {
@@ -126,8 +125,6 @@ class AdminPanelControlador {
 
     public function listarClientes(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Cliente.php';
 
         $cli = new Cliente();
         $clientes = $cli->obtener_todos();
@@ -137,8 +134,6 @@ class AdminPanelControlador {
 
     public function agregarCliente(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Cliente.php';
 
         $cli = new Cliente();
         $mensaje = '';
@@ -171,8 +166,6 @@ class AdminPanelControlador {
 
     public function editarCliente(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Cliente.php';
 
         $cli = new Cliente();
         $dni = isset($_GET['dni']) ? trim($_GET['dni']) : trim($_POST['dni']);
@@ -210,8 +203,6 @@ class AdminPanelControlador {
 
     public function eliminarCliente(){
         $this->verificar_sesion();
-        require_once APP_PATH . '/models/Conexion.php';
-        require_once APP_PATH . '/models/Cliente.php';
 
         $dni = isset($_GET['dni']) ? trim($_GET['dni']) : '';
         if ($dni !== '') {

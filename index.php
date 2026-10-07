@@ -11,10 +11,12 @@ define('VENDOR_PATH', __DIR__ . '/vendor');    //Para la direccion vendor
 
 //Autocarga de modelos y controladores
 spl_autoload_register(function ($clase) {
-    if(file_exists(APP_PATH . '/models/' . $clase . '.php')) {
+    if (file_exists(APP_PATH . '/models/' . $clase . '.php')) {
         require_once APP_PATH . '/models/' . $clase . '.php';
-    }elseif (file_exists(APP_PATH . '/controllers/' . $clase . '.php')) {
+    } elseif (file_exists(APP_PATH . '/controllers/' . $clase . '.php')) {
         require_once APP_PATH . '/controllers/' . $clase . '.php';
+    } elseif (file_exists(APP_PATH . '/services/' . $clase . '.php')) {  // ← AGREGAR
+        require_once APP_PATH . '/services/' . $clase . '.php';
     }
 });
 

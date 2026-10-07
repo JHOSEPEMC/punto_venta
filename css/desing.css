@@ -1,23 +1,125 @@
-h1{
+/* ═══════════════════════════════════════════════════════════════ */
+/* VARIABLES GLOBALES                                              */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/*paleta de colores del sitio basada en naranja :SillyPijas:*/
+:root {
+    --naranja-principal:  #FF7800;
+    --naranja-oscuro:     #E65C00;
+    --naranja-claro:      #FFB366;
+    --crema:              #FFF0C8;
+    --marron-texto:       #3D2817;
+    --blanco:             #FFFFFF;
+    --gris-borde:         #DDD;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* BASE                                                            */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/*aplica el color de fondo y la tipografía base al cuerpo*/
+body {
+    background-color: var(--crema);
+    color: var(--marron-texto);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* TIPOGRAFÍA                                                      */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/*estilo del título principal h1*/
+h1 {
     text-align: center;
-    background-color: orange;
-    border-radius: 25%;
+    background-color: var(--naranja-principal);
+    color: var(--blanco);
     font-family: Georgia, 'Times New Roman', Times, serif;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px auto;
 }
-body{
-    background-color: rgb(255, 240, 200);
-}
-h2{
-    color: white;
-    background-color: rgb(255, 120, 0);
+
+/*estilo de los subtítulos h2*/
+h2 {
     text-align: center;
-    font-family: cursive;
-    border-radius: 10%;
-    border-style: dashed;
+    background-color: var(--naranja-principal);
+    color: var(--blanco);
+    font-family: 'Comic Sans MS', 'Brush Script MT', cursive;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
-div{
+
+/*estilo de los encabezados h4, h5, h6*/
+h4, h5, h6 {
+    color: var(--marron-texto);
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* COMPONENTES                                                     */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/*botón principal naranja que combina con el tema*/
+.btn-naranja {
+    background-color: var(--naranja-principal);
+    border-color: var(--naranja-principal);
+    color: var(--blanco);
+}
+.btn-naranja:hover,
+.btn-naranja:focus {
+    background-color: var(--naranja-oscuro);
+    border-color: var(--naranja-oscuro);
+    color: var(--blanco);
+}
+
+/*botón naranja claro para acciones secundarias*/
+.btn-naranja-claro {
+    background-color: var(--naranja-claro);
+    border-color: var(--naranja-claro);
+    color: var(--marron-texto);
+}
+.btn-naranja-claro:hover {
+    background-color: var(--naranja-principal);
+    border-color: var(--naranja-principal);
+    color: var(--blanco);
+}
+
+/*tarjetas con borde naranja*/
+.card {
+    border: 2px solid var(--naranja-principal);
+    border-radius: 10px;
+}
+
+/*header de las tablas con color naranja claro*/
+.table-dark th {
+    background-color: var(--naranja-principal) !important;
+    color: var(--blanco) !important;
+    border-color: var(--naranja-oscuro) !important;
+}
+
+/*inputs y selects con borde que combine con el tema*/
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--naranja-principal);
+    box-shadow: 0 0 0 0.25rem rgba(255, 120, 0, 0.25);
+}
+
+/*imágenes con bordes redondeados*/
+img {
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* UTILIDADES                                                      */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/*centra el texto horizontalmente*/
+.text-center-custom {
     text-align: center;
 }
-img{
-    border-radius: 10%;
+
+/*aplica un borde redondeado tipo tarjeta*/
+.round-box {
+    border-radius: 10px;
 }

@@ -2,18 +2,21 @@
 class Venta {
     private $bd;
 
+    //conecta con la base de datos al instanciar
     public function __construct(){
         $this->bd = Conexion::conectar();
     }
 
-    //inserta una fila en el detalle de la venta
+    //inserta una fila en el detalle usando sentencia preparada
     public function insertar($id_boleta, $id_producto, $cantidad, $precio_unitario){
         $sql = "INSERT INTO ventas (id_boleta, id_producto, cantidad, precio_unitario)
-                VALUES (" . (int)$id_boleta . ", " . (int)$id_producto . ", " . (int)$cantidad . ", '$precio_unitario')";
-        return $this->bd->query($sql);
+                VALUES (?, ?, ?, ?)";
+        $stmt = $this->bd->prepare($sql);
+        $stmt->bind_param("iiid", $id_boleta, $id_producto, $cantidad, $precio_unitario);
+        return $stmt->execute();
     }
 
-    //devuelve el detalle de una boleta
+    //devuelve el detalle de una boleta usando sentencia preparada
     public function obtener_por_boleta($id_boleta){
         $sql = "
             SELECT ventas.id_venta,
@@ -22,9 +25,12 @@ class Venta {
                     productos.nombre_producto as producto
             FROM ventas
             LEFT JOIN productos ON ventas.id_producto = productos.id_producto
-            WHERE ventas.id_boleta = " . (int)$id_boleta . "
+            WHERE ventas.id_boleta = ?
             ORDER BY ventas.id_venta ASC
         ";
-        return $this->bd->query($sql);
+        $stmt = $this->bd->prepare($sql);
+        $stmt->bind_param("i", $id_boleta);
+        $stmt->execute();
+        return $stmt->get_result();
     }
 }

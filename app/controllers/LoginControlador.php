@@ -1,7 +1,7 @@
 <?php
 class LoginControlador {
 
-    //Muestra el login y valida credenciales
+    //muestra el login y valida credenciales con hash
     public function iniciar_sesion(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -10,24 +10,25 @@ class LoginControlador {
         $mensaje = false;
 
         if ($usuario !== '' && $contra !== '') {
-            //SQL ya NO está aquí. El modelo Empleado se encarga.
+            //busca al empleado por dni
             $emp = new Empleado();
-            $usuarioLogueado = $emp->buscar_por_credenciales($usuario, $contra);
+            $empleado = $emp->obtener_por_dni($usuario);
 
-            if (!$usuarioLogueado) {
-                $mensaje = true;
-            } else {
-                $_SESSION['UsuarioDni']    = $usuarioLogueado['dni_empleado'];
-                $_SESSION['UsuarioContra'] = $usuarioLogueado['pass'];
+            //valida la contraseña contra el hash guardado
+            if ($empleado && password_verify($contra, $empleado['pass'])) {
+                $_SESSION['UsuarioDni']    = $empleado['dni_empleado'];
+                $_SESSION['UsuarioContra'] = $empleado['pass'];
                 header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
                 exit;
+            } else {
+                $mensaje = true;
             }
         }
 
         require_once APP_PATH . '/views/login.php';
     }
 
-    //Cierra solo la sesión del empleado
+    //cierra solo la sesión del empleado
     public function cerrar_sesion(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
