@@ -141,6 +141,7 @@ class CajaControlador {
     }
 
     //confirma la venta: inserta en BD y redirige a la boleta
+    //confirma la venta: crea la boleta y su detalle
     public function confirmar(){
         //inicia la sesión
         if (session_status() === PHP_SESSION_NONE) session_start();
@@ -159,42 +160,34 @@ class CajaControlador {
         $clienteDNI = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';
         $items = Carrito::obtener();
 
-        //si no hay cliente o no hay items, no se puede confirmar
         if ($clienteDNI === '' || empty($items)) {
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
             exit;
         }
 
         //instancia modelos
-        $pdto  = new Producto();
-        $venta = new Venta();
+        $pdto     = new Producto();
+        $boleta   = new Boleta();
+        $venta    = new Venta();
 
-        //fecha actual
-        $fecha = date("Y/m/d");
+        //calcula el total
+        $total = Carrito::total();
+        $fecha = date("Y-m-d H:i:s");
 
-        //recorre los items: descuenta stock e inserta la venta
+        //1. inserta la cabecera de la boleta
+        $id_boleta = $boleta->insertar($clienteDNI, $userDNI, $total, $fecha);
+
+        //2. por cada item: descuenta stock e inserta el detalle
         foreach ($items as $item) {
-            //descuenta el stock del producto
             $pdto->descontar_stock($item['id_producto'], $item['cantidad']);
-
-            //inserta el registro de venta
-            $venta->insertar($userDNI, $clienteDNI, $item['id_producto'], $item['cantidad'], $fecha);
+            $venta->insertar($id_boleta, $item['id_producto'], $item['cantidad'], $item['precio']);
         }
 
-        //guarda los datos de la venta en sesión para la boleta
-        $_SESSION['boleta'] = [
-            'clienteDNI' => $clienteDNI,
-            'items'      => $items,
-            'total'      => Carrito::total(),
-            'fecha'      => $fecha,
-            'empleado'   => $userDNI,
-        ];
-
-        //vacía el carrito (ya se registró la venta)
+        //vacía el carrito
         Carrito::vaciar();
 
-        //redirige a la boleta en PDF
-        header('Location: ' . BASE_URL . 'index.php?controller=boleta&action=resultado');
+        //redirige a la boleta
+        header('Location: ' . BASE_URL . 'index.php?controller=boleta&action=mostrar&id=' . $id_boleta);
         exit;
     }
 }

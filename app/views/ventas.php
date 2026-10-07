@@ -2,25 +2,24 @@
 <?php include __DIR__ . '/partials/nav.php'; ?>
 
 <div class="container mt-4">
-    <h2>VENTAS REALIZADAS</h2>
+    <h2>BOLETAS REALIZADAS</h2>
 
-    <!--FORMULARIO DE FILTROS-->
     <div class="card mb-3">
         <div class="card-body">
             <div class="row">
-                <!--Filtro por id_boleta-->
+                <!--búsqueda por número de boleta-->
                 <div class="col-md-6">
                     <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
                         <input type="hidden" name="controller" value="ventas">
                         <input type="hidden" name="action" value="mostrar">
-                        <input type="text" name="id_boleta" class="form-control me-2"
-                               placeholder="Buscar por número de boleta (Ej: BOL-20260930-0001)"
-                               value="<?= htmlspecialchars($idBoletaFiltro ?? '') ?>">
+                        <input type="text" name="numero_boleta" class="form-control me-2"
+                                placeholder="Buscar boleta (Ej: BOL-000001)"
+                                value="<?= htmlspecialchars($numeroFiltro ?? '') ?>">
                         <button type="submit" class="btn btn-primary">Buscar</button>
                     </form>
                 </div>
 
-                <!--Filtro por mes y exportación a Excel-->
+                <!--filtro por mes-->
                 <div class="col-md-6">
                     <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
                         <input type="hidden" name="controller" value="ventas">
@@ -28,8 +27,7 @@
                         <select name="mes" class="form-control me-2">
                             <option value="">-- Todos los meses --</option>
                             <?php foreach ($meses as $m): ?>
-                                <option value="<?= $m['mes'] ?>"
-                                    <?= ($mesFiltro ?? '') == $m['mes'] ? 'selected' : '' ?>>
+                                <option value="<?= $m['mes'] ?>" <?= ($mesFiltro ?? '') == $m['mes'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($m['mes']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -39,63 +37,58 @@
                 </div>
             </div>
 
-            <!--Botones de exportación y limpieza de filtros-->
             <div class="mt-2">
                 <a href="<?= BASE_URL ?>index.php?controller=excel&action=ventas&mes=<?= urlencode($mesFiltro ?? '') ?>"
-                   class="btn btn-success">📊 Exportar a Excel (mes seleccionado)</a>
+                    class="btn btn-success">📊 Exportar a Excel</a>
                 <a href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar"
-                   class="btn btn-secondary">🔄 Limpiar filtros</a>
+                    class="btn btn-secondary">🔄 Limpiar filtros</a>
             </div>
         </div>
     </div>
 
-    <!--TABLA DE VENTAS-->
     <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>BOLETA</th>
-                    <th>EMPLEADO</th>
-                    <th>CLIENTE</th>
-                    <th>PRODUCTO</th>
-                    <th>CANTIDAD</th>
+                    <th>N° BOLETA</th>
                     <th>FECHA</th>
+                    <th>CLIENTE</th>
+                    <th>EMPLEADO</th>
+                    <th>TOTAL</th>
+                    <th>PDF</th>
                 </tr>
             </thead>
             <tbody>
                 <?php 
-                $hayVentas = false;
-                foreach ($ventas as $venta):
-                    $hayVentas = true;
+                $hay = false;
+                foreach ($boletas as $b):
+                    $hay = true;
                 ?>
                     <tr>
-                        <td><?= $venta['id_venta'] ?></td>
-                        <td><?= htmlspecialchars($venta['id_boleta'] ?? '—') ?></td>
+                        <td><?= htmlspecialchars($b['numero_boleta']) ?></td>
+                        <td><?= htmlspecialchars($b['fecha_emision']) ?></td>
                         <td>
-                            <?= $venta['empleado'] === null
+                            <?= $b['cliente'] === null
+                                ? htmlspecialchars($b['dni_cliente']) . ' | fuera del sistema'
+                                : htmlspecialchars($b['cliente']) ?>
+                        </td>
+                        <td>
+                            <?= $b['empleado'] === null
                                 ? 'fuera del sistema'
-                                : htmlspecialchars($venta['empleado']) ?>
+                                : htmlspecialchars($b['empleado']) ?>
                         </td>
+                        <td>S/. <?= number_format($b['total'], 2) ?></td>
                         <td>
-                            <?= $venta['cliente'] === null
-                                ? htmlspecialchars($venta['dni_cliente']) . ' | fuera del sistema'
-                                : htmlspecialchars($venta['cliente']) ?>
+                            <a href="<?= BASE_URL ?>index.php?controller=boleta&action=mostrar&id=<?= $b['id_boleta'] ?>"
+                                class="btn btn-primary btn-sm" target="_blank">Ver PDF</a>
+                            <a href="<?= BASE_URL ?>index.php?controller=boleta&action=descargar&id=<?= $b['id_boleta'] ?>"
+                                class="btn btn-success btn-sm">Descargar</a>
                         </td>
-                        <td>
-                            <?= $venta['producto'] === null
-                                ? 'Producto ID ' . $venta['id_producto'] . ' | fuera del sistema'
-                                : htmlspecialchars($venta['producto']) ?>
-                        </td>
-                        <td><?= $venta['cantidad'] ?></td>
-                        <td><?= htmlspecialchars($venta['fecha_venta']) ?></td>
                     </tr>
                 <?php endforeach; ?>
 
-                <?php if (!$hayVentas): ?>
-                    <tr>
-                        <td colspan="7" class="text-center">No hay ventas que mostrar con los filtros actuales.</td>
-                    </tr>
+                <?php if (!$hay): ?>
+                    <tr><td colspan="6" class="text-center">No hay boletas que mostrar.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

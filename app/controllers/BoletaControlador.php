@@ -1,85 +1,78 @@
 <?php
-//imports de Dompdf (deben ir al inicio del archivo)
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
 class BoletaControlador {
 
-    //muestra la página con los botones "Ver" y "Descargar"
-    public function resultado(){
-        //inicia la sesión
-        if (session_status() === PHP_SESSION_NONE) session_start();
-
-        //verifica que exista una boleta
-        if (!isset($_SESSION['boleta'])) {
-            header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
-            exit;
-        }
-
-        //pasa la boleta a la vista
-        $boleta = $_SESSION['boleta'];
-
-        //carga la vista con los botones
-        require_once APP_PATH . '/views/boleta_resultado.php';
-    }
-
-    //genera y muestra el PDF en el navegador
-    public function ver(){
+    public function mostrar(){
         $this->generar_pdf(false);
     }
 
-    //genera y descarga el PDF
     public function descargar(){
         $this->generar_pdf(true);
     }
 
-    //método privado que genera el PDF (compartido por ver y descargar)
     private function generar_pdf($descargar){
-        //inicia la sesión
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        //verifica que exista una boleta
-        if (!isset($_SESSION['boleta'])) {
-            header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
+        //recibe el id de la boleta
+        $id_boleta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+        if ($id_boleta === 0) {
+            header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
             exit;
         }
 
-        //recoge los datos de la boleta
-        $boleta = $_SESSION['boleta'];
+        //carga modelos
+        $boletaModel = new Boleta();
+        $ventaModel  = new Venta();
 
-        //carga el autoload de Composer (Dompdf)
+        //obtiene la cabecera y el detalle
+        $cabecera = $boletaModel->obtener_por_id($id_boleta);
+        if (!$cabecera) {
+            header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
+            exit;
+        }
+
+        $detalle = $ventaModel->obtener_por_boleta($id_boleta);
+
+        //arma la estructura para la vista
+        $boleta = [
+            'numero_boleta' => $cabecera['numero_boleta'],
+            'fecha'         => $cabecera['fecha_emision'],
+            'cliente'       => $cabecera['cliente'] !== null ? $cabecera['cliente'] : 'fuera del sistema',
+            'clienteDNI'    => $cabecera['dni_cliente'],
+            'empleado'      => $cabecera['empleado'] !== null ? $cabecera['empleado'] : 'fuera del sistema',
+            'items'         => [],
+            'total'         => $cabecera['total'],
+        ];
+
+        while ($fila = $detalle->fetch_assoc()) {
+            $boleta['items'][] = [
+                'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
+                'cantidad' => $fila['cantidad'],
+                'precio'   => $fila['precio_unitario'],
+                'subtotal' => $fila['precio_unitario'] * $fila['cantidad'],
+            ];
+        }
+
+        //carga Dompdf
         require_once VENDOR_PATH . '/autoload.php';
-
-        //configura Dompdf
         $options = new Options();
         $options->set('isRemoteEnabled', true);
         $dompdf = new Dompdf($options);
 
-        //captura el HTML de la vista de la boleta con output buffering
+        //captura el HTML de la vista
         ob_start();
         include APP_PATH . '/views/boleta.php';
         $html = ob_get_clean();
 
-        //carga el HTML y renderiza
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        //nombre del archivo con DNI del cliente y fecha
-        $nombreArchivo = 'boleta_' . $boleta['clienteDNI'] . '_' . date('Ymd') . '.pdf';
-
-        //Attachment true = descargar, false = mostrar en navegador
+        $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
         $dompdf->stream($nombreArchivo, ['Attachment' => $descargar]);
-
-        //NO borramos la boleta de la sesión aquí, para poder ver y descargar varias veces
-        exit;
-    }
-
-    //limpia la boleta de la sesión (opcional, lo llamas desde el resultado)
-    public function limpiar(){
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        unset($_SESSION['boleta']);
-        header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
         exit;
     }
 }

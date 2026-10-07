@@ -7,28 +7,29 @@ class VentasControlador {
         $carritoTotal = isset($_SESSION['totalCarrito']) ? $_SESSION['totalCarrito'] : null;
         if ($carritoTotal != null) $_SESSION['totalCarrito'] = null;
 
-        //recibe los filtros desde la URL
-        $mesFiltro      = isset($_GET['mes'])        ? trim($_GET['mes'])        : '';
-        $idBoletaFiltro = isset($_GET['id_boleta'])  ? trim($_GET['id_boleta'])  : '';
+        //recibe filtros desde la URL
+        $mesFiltro   = isset($_GET['mes'])         ? trim($_GET['mes'])         : '';
+        $numeroFiltro = isset($_GET['numero_boleta']) ? trim($_GET['numero_boleta']) : '';
 
-        //instancia el modelo
-        $ventaModel = new Venta();
+        //instancia modelo
+        $boletaModel = new Boleta();
 
-        //si hay búsqueda por boleta, filtra por boleta
-        if ($idBoletaFiltro !== '') {
-            $ventas = $ventaModel->obtener_por_id_boleta($idBoletaFiltro);
+        //si hay búsqueda por número de boleta
+        if ($numeroFiltro !== '') {
+            $boleta = $boletaModel->obtener_por_numero($numeroFiltro);
+            $boletas = $boleta ? [$boleta] : [];
         }
-        //si hay filtro por mes, filtra por mes
+        //si hay filtro por mes
         elseif ($mesFiltro !== '') {
-            $ventas = $ventaModel->obtener_por_mes($mesFiltro);
+            $boletas = $boletaModel->obtener_por_mes($mesFiltro);
         }
-        //si no hay filtro, muestra todas
+        //sin filtro
         else {
-            $ventas = $ventaModel->obtener_todas();
+            $boletas = $boletaModel->obtener_todas();
         }
 
-        //lista de meses disponibles para el <select>
-        $meses = $ventaModel->obtener_meses_disponibles();
+        //meses disponibles para el <select>
+        $meses = $boletaModel->obtener_meses_disponibles();
 
         require_once APP_PATH . '/views/ventas.php';
     }
