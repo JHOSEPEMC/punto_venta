@@ -3,7 +3,7 @@
 
 <div class="container mt-4">
     <h2>Login de Administrador</h2>
-    <form action="<?= BASE_URL ?>index.php?controller=adminLogin&action=iniciar_sesion" method="POST">
+    <form action="<?= BASE_URL ?>index.php?controller=admin&action=login" method="POST">
         <span>DNI del administrador: </span><br>
         <input class='i_s' type="text" required placeholder="DNI" name="AdminDni"><br><br>
 

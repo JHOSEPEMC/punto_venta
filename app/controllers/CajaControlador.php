@@ -51,7 +51,7 @@ class CajaControlador {
         //verifica que el empleado esté logueado
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
-            header('Location: ' . BASE_URL . 'index.php?controller=login&action=iniciar_sesion');
+            header('Location: ' . BASE_URL . 'index.php?controller=empleado&action=login');
             exit;
         }
 
@@ -109,7 +109,7 @@ class CajaControlador {
         //verifica login
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
-            header('Location: ' . BASE_URL . 'index.php?controller=login&action=iniciar_sesion');
+            header('Location: ' . BASE_URL . 'index.php?controller=empleado&action=login');
             exit;
         }
 
@@ -152,7 +152,7 @@ class CajaControlador {
         //verifica login
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
-            header('Location: ' . BASE_URL . 'index.php?controller=login&action=iniciar_sesion');
+            header('Location: ' . BASE_URL . 'index.php?controller=empleado&action=login');
             exit;
         }
 

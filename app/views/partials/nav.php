@@ -26,18 +26,22 @@ $esAdmin    = isset($_SESSION['AdminDni']);
                 <!-- Solo si hay ADMIN logueado -->
                 <?php if ($esAdmin): ?>
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar">Panel Admin</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=adminLogout&action=cerrar">Cerrar Sesión Admin</a></li>
+                    <!-- Cerrar Sesión Admin -->
+                    <li><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=admin&action=logout">Cerrar Sesión Admin</a></li>
                 <?php endif; ?>
 
                 <!-- Logins: solo si NADIE está logueado -->
                 <?php if (!$esEmpleado && !$esAdmin): ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=login&action=iniciar_sesion">Login Empleado</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=adminLogin&action=iniciar_sesion">Login Admin</a></li>
+                    <!-- Login Empleado -->
+                    <li><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=empleado&action=login">Login Empleado</a></li>
+                    <!-- Login Admin -->
+                    <li><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=admin&action=login">Login Admin</a></li>
                 <?php endif; ?>
 
                 <!-- Cerrar sesión de empleado: solo si es empleado -->
                 <?php if ($esEmpleado): ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=login&action=cerrar_sesion">Cerrar Sesión</a></li>
+                    <!-- Cerrar Sesión Empleado -->
+                    <li><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=empleado&action=logout">Cerrar Sesión</a></li>
                 <?php endif; ?>
 
             </ul>

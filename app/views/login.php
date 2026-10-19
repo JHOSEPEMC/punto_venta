@@ -3,7 +3,7 @@
 
 <div class="container mt-4">
     <h2>Login</h2>
-    <form action="<?= BASE_URL ?>index.php?controller=login&action=iniciar_sesion" method="POST">
+    <form action="<?= BASE_URL ?>index.php?controller=empleado&action=login" method="POST">
         <span>Usuario (DNI): </span><br>
         <input class='i_s' type="text" required placeholder="Usuario" name="UsuarioDni"><br><br>
 

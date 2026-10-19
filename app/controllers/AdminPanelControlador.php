@@ -3,12 +3,13 @@ class AdminPanelControlador {
 
     //Verifica que haya admin logueado. Si no, redirige.
     private function verificar_sesion(){
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        if (!isset($_SESSION['AdminDni'])) {
-            header('Location: ' . BASE_URL . 'index.php?controller=adminLogin&action=iniciar_sesion');
-            exit;
-        }
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    if (!isset($_SESSION['AdminDni'])) {
+        //redirige al nuevo controlador unificado
+        header('Location: ' . BASE_URL . 'index.php?controller=admin&action=login');
+        exit;
     }
+}
 
     //═══════════ PANEL PRINCIPAL ═══════════
     //muestra el panel principal del admin
