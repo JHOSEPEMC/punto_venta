@@ -1,125 +1,107 @@
 /* ═══════════════════════════════════════════════════════════════ */
-/* VARIABLES GLOBALES                                              */
+/* VARIABLES Y CONFIGURACIÓN BASE                                  */
 /* ═══════════════════════════════════════════════════════════════ */
-
-/*paleta de colores del sitio basada en naranja :SillyPijas:*/
 :root {
-    --naranja-principal:  #FF7800;
-    --naranja-oscuro:     #E65C00;
-    --naranja-claro:      #FFB366;
-    --crema:              #FFF0C8;
-    --marron-texto:       #3D2817;
-    --blanco:             #FFFFFF;
-    --gris-borde:         #DDD;
+    --naranja-principal: #FF7800;
+    --naranja-oscuro: #E65C00;
+    --naranja-claro: #FFF3E0;
+    --blanco: #FFFFFF;
+    --gris-fondo: #F8F9FA;
+    --texto-oscuro: #333333;
 }
 
-/* ═══════════════════════════════════════════════════════════════ */
-/* BASE                                                            */
-/* ═══════════════════════════════════════════════════════════════ */
-
-/*aplica el color de fondo y la tipografía base al cuerpo*/
 body {
-    background-color: var(--crema);
-    color: var(--marron-texto);
-    font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--gris-fondo);
+    color: var(--texto-oscuro);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-bottom: 60px; /* Espacio para el footer */
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* TIPOGRAFÍA                                                      */
+/* COMPONENTES PERSONALIZADOS                                      */
 /* ═══════════════════════════════════════════════════════════════ */
+.bg-naranja { background-color: var(--naranja-principal) !important; color: white; }
+.text-naranja { color: var(--naranja-principal) !important; }
 
-/*estilo del título principal h1*/
-h1 {
-    text-align: center;
-    background-color: var(--naranja-principal);
-    color: var(--blanco);
-    font-family: Georgia, 'Times New Roman', Times, serif;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 20px auto;
-}
-
-/*estilo de los subtítulos h2*/
-h2 {
-    text-align: center;
-    background-color: var(--naranja-principal);
-    color: var(--blanco);
-    font-family: 'Comic Sans MS', 'Brush Script MT', cursive;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-/*estilo de los encabezados h4, h5, h6*/
-h4, h5, h6 {
-    color: var(--marron-texto);
-}
-
-/* ═══════════════════════════════════════════════════════════════ */
-/* COMPONENTES                                                     */
-/* ═══════════════════════════════════════════════════════════════ */
-
-/*botón principal naranja que combina con el tema*/
 .btn-naranja {
     background-color: var(--naranja-principal);
     border-color: var(--naranja-principal);
     color: var(--blanco);
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
-.btn-naranja:hover,
-.btn-naranja:focus {
+.btn-naranja:hover {
     background-color: var(--naranja-oscuro);
     border-color: var(--naranja-oscuro);
     color: var(--blanco);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 120, 0, 0.3);
 }
 
-/*botón naranja claro para acciones secundarias*/
-.btn-naranja-claro {
-    background-color: var(--naranja-claro);
-    border-color: var(--naranja-claro);
-    color: var(--marron-texto);
-}
-.btn-naranja-claro:hover {
-    background-color: var(--naranja-principal);
-    border-color: var(--naranja-principal);
-    color: var(--blanco);
-}
-
-/*tarjetas con borde naranja*/
 .card {
-    border: 2px solid var(--naranja-principal);
-    border-radius: 10px;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/*header de las tablas con color naranja claro*/
 .table-dark th {
     background-color: var(--naranja-principal) !important;
-    color: var(--blanco) !important;
-    border-color: var(--naranja-oscuro) !important;
+    border-color: var(--naranja-principal) !important;
+    color: white;
 }
 
-/*inputs y selects con borde que combine con el tema*/
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--naranja-principal);
-    box-shadow: 0 0 0 0.25rem rgba(255, 120, 0, 0.25);
-}
-
-/*imágenes con bordes redondeados*/
-img {
+/* ═══════════════════════════════════════════════════════════════ */
+/* INTERFAZ DE LA CAJA (PRODUCTOS Y CARRITO)                       */
+/* ═══════════════════════════════════════════════════════════════ */
+.producto-btn {
+    background: white;
+    border: 2px solid #eee;
     border-radius: 10px;
-    max-width: 100%;
-}
-
-/* ═══════════════════════════════════════════════════════════════ */
-/* UTILIDADES                                                      */
-/* ═══════════════════════════════════════════════════════════════ */
-
-/*centra el texto horizontalmente*/
-.text-center-custom {
+    padding: 15px;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.producto-btn:hover {
+    border-color: var(--naranja-principal);
+    box-shadow: 0 4px 10px rgba(255, 120, 0, 0.15);
+    transform: scale(1.02);
+}
+.producto-btn .precio {
+    font-weight: bold;
+    color: var(--naranja-oscuro);
+    font-size: 1.1rem;
 }
 
-/*aplica un borde redondeado tipo tarjeta*/
-.round-box {
-    border-radius: 10px;
+.carrito-sticky {
+    position: sticky;
+    top: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+}
+
+.carrito-lista {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.carrito-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+/* Ocultar las flechas de los inputs de cantidad */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
 }

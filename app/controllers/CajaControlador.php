@@ -8,7 +8,7 @@ class CajaControlador {
         //verifica que el empleado esté logueado
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
-            echo '<div class="container mt-4"><h2>Debes <a href="' . BASE_URL . 'index.php?controller=login&action=iniciar_sesion">Iniciar Sesion</a></h2></div>';
+            echo '<div class="container mt-4"><h2>Debes <a href="' . BASE_URL . 'index.php?controller=empleado&action=login">Iniciar Sesion</a> como <b>Empleado</h2></div>';
             return;
         }
 
@@ -26,7 +26,8 @@ class CajaControlador {
 
         //obtiene listas de clientes y productos
         $clientes = $cli->obtener_todos();
-        $productos = $pdto->obtener_todos();
+        // En CajaControlador::mostrar()
+        $productos = $pdto->obtener_todos_con_categoria(); // Usamos el método con JOIN
 
         //obtiene cliente seleccionado actualmente
         $clienteActual = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';
@@ -145,51 +146,48 @@ class CajaControlador {
 
     //confirma la venta: inserta en BD y redirige a la boleta
     //confirma la venta: crea la boleta y su detalle
-    public function confirmar(){
-        //inicia la sesión
+        public function confirmar(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        //verifica login
         $userDNI = isset($_SESSION['UsuarioDni']) ? $_SESSION['UsuarioDni'] : '';
         if ($userDNI === '') {
             header('Location: ' . BASE_URL . 'index.php?controller=empleado&action=login');
             exit;
         }
 
-        //inicia el carrito
-        Carrito::iniciar();
-
-        //recoge el cliente actual y los items
-        $clienteDNI = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';
-        $items = Carrito::obtener();
+        $clienteDNI = isset($_POST['cliente']) ? trim($_POST['cliente']) : '';
+        $carritoJson = isset($_POST['carrito']) ? $_POST['carrito'] : '';
+        
+        // Decodificar el carrito enviado desde JS
+        $items = json_decode($carritoJson, true);
 
         if ($clienteDNI === '' || empty($items)) {
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
             exit;
         }
 
-        //instancia modelos
         $pdto     = new Producto();
         $boleta   = new Boleta();
         $venta    = new Venta();
 
-        //calcula el total
-        $total = Carrito::total();
-        $fecha = date("Y-m-d H:i:s");
-
-        //1. inserta la cabecera de la boleta
-        $id_boleta = $boleta->insertar($clienteDNI, $userDNI, $total, $fecha);
-
-        //2. por cada item: descuenta stock e inserta el detalle
+        // Calcular total
+        $total = 0;
         foreach ($items as $item) {
-            $pdto->descontar_stock($item['id_producto'], $item['cantidad']);
-            $venta->insertar($id_boleta, $item['id_producto'], $item['cantidad'], $item['precio']);
+            $total += ($item['precio'] * $item['cantidad']);
         }
 
-        //vacía el carrito
-        Carrito::vaciar();
+        $fecha = date("Y-m-d H:i:s");
 
-        //redirige a la boleta
+        // 1. Insertar cabecera
+        $id_boleta = $boleta->insertar($clienteDNI, $userDNI, $total, $fecha);
+
+        // 2. Insertar detalle y descontar stock
+        foreach ($items as $item) {
+            $pdto->descontar_stock($item['id'], $item['cantidad']);
+            $venta->insertar($id_boleta, $item['id'], $item['cantidad'], $item['precio']);
+        }
+
+        // 3. Redirigir a la boleta generada (Ticket Digital)
         header('Location: ' . BASE_URL . 'index.php?controller=boleta&action=mostrar&id=' . $id_boleta);
         exit;
     }

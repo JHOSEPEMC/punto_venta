@@ -1,20 +1,22 @@
 <?php include __DIR__ . '/partials/header.php'; ?>
 <?php include __DIR__ . '/partials/nav.php'; ?>
 
-<div class="container mt-4">
-    <h2>Caja</h2>
-
+<div class="container-fluid mt-4">
+    <!-- Mensaje de error si no hay stock -->
     <?php if (!empty($mensajeCaja)): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($mensajeCaja) ?></div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($mensajeCaja) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     <?php endif; ?>
 
-    <!--formulario para seleccionar cliente y agregar productos-->
-    <form action="<?= BASE_URL ?>index.php?controller=caja&action=agregar" method="POST">
-        <div class="row">
-            <div class="col-md-4">
-                <label>Cliente:</label>
-                <select class="form-control" name="ClienteDni" required>
-                    <option value="">-- Selecciona cliente --</option>
+    <div class="row">
+        <!-- ================= COLUMNA IZQUIERDA: PRODUCTOS ================= -->
+        <div class="col-lg-8 mb-4">
+            <div class="card p-3 mb-3">
+                <label class="fw-bold mb-2">Cliente:</label>
+                <select class="form-select border-warning" id="selectCliente" required>
+                    <option value="">-- Selecciona un cliente --</option>
                     <?php foreach ($clientes as $c): ?>
                         <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>)
@@ -23,75 +25,187 @@
                 </select>
             </div>
 
-            <div class="col-md-4">
-                <label>Producto:</label>
-                <select class="form-control" name="IdProducto" required>
-                    <option value="">-- Selecciona producto --</option>
-                    <?php foreach ($productos as $p): ?>
-                        <option value="<?= $p['id_producto'] ?>">
-                            <?= htmlspecialchars($p['nombre_producto']) ?> - S/. <?= $p['precio_unitario'] ?>
-                            (stock: <?= $p['stock'] ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0">Catálogo de Productos</h4>
+                <input type="text" id="buscador" class="form-control w-50" placeholder="🔍 Buscar producto...">
             </div>
 
-            <div class="col-md-2">
-                <label>Cantidad:</label>
-                <input class="form-control" type="number" name="Cantidad" min="1" value="1" required>
-            </div>
-
-            <div class="col-md-2">
-                <label>&nbsp;</label>
-                <button type="submit" class="btn btn-naranja form-control">Agregar</button>
+            <!-- Lista de Productos (Cuadrícula) -->
+            <div class="row g-3" id="listaProductos">
+                <?php foreach ($productos as $p): ?>
+                    <div class="col-6 col-md-4 col-xl-3 producto-item" data-nombre="<?= strtolower(htmlspecialchars($p['nombre_producto'])) ?>">
+                        <div class="producto-btn" onclick="agregarAlCarrito(<?= $p['id_producto'] ?>, '<?= addslashes($p['nombre_producto']) ?>', <?= $p['precio_unitario'] ?>, <?= $p['stock'] ?>)">
+                            <div class="small text-muted"><?= htmlspecialchars($p['nombre_catg']) ?></div>
+                            <div class="fw-bold"><?= htmlspecialchars($p['nombre_producto']) ?></div>
+                            <div class="precio mt-2">S/. <?= number_format($p['precio_unitario'], 2) ?></div>
+                            <div class="small text-muted">Stock: <?= $p['stock'] ?></div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             </div>
         </div>
-    </form>
 
-    <hr>
+        <!-- ================= COLUMNA DERECHA: CARRITO ================= -->
+        <div class="col-lg-4">
+            <div class="carrito-sticky">
+                <div class="p-3 bg-naranja text-white rounded-top">
+                    <h5 class="m-0">🛒 Carrito de Venta</h5>
+                </div>
+                
+                <div class="carrito-lista" id="carritoLista">
+                    <!-- Los items se cargan con JS -->
+                    <p class="text-center text-muted mt-4" id="carritoVacio">El carrito está vacío.</p>
+                </div>
 
-    <!--tabla del carrito-->
-    <?php if (!empty($items)): ?>
-        <h4>Productos en el carrito</h4>
-        <table class="table table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Subtotal</th>
-                    <th>Quitar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($items as $item): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($item['nombre']) ?></td>
-                        <td><?= $item['cantidad'] ?></td>
-                        <td>S/. <?= number_format($item['precio'], 2) ?></td>
-                        <td>S/. <?= number_format($item['precio'] * $item['cantidad'], 2) ?></td>
-                        <td>
-                            <a href="<?= BASE_URL ?>index.php?controller=caja&action=quitar&id=<?= $item['id_producto'] ?>"
-                                class="btn btn-danger btn-sm">X</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <h3>Total: S/. <?= number_format($total, 2) ?></h3>
-
-        <!--botones de confirmar y vaciar-->
-        <a href="<?= BASE_URL ?>index.php?controller=caja&action=confirmar"
-            class="btn btn-success"
-            onclick="return confirm('¿Confirmar la venta?');">Confirmar Venta</a>
-        <a href="<?= BASE_URL ?>index.php?controller=caja&action=vaciar"
-            class="btn btn-warning"
-            onclick="return confirm('¿Vaciar el carrito?');">Vaciar Carrito</a>
-
-    <?php else: ?>
-        <p>No hay productos en el carrito.</p>
-    <?php endif; ?>
+                <div class="p-3 border-top bg-light rounded-bottom">
+                    <div class="d-flex justify-content-between fs-5 fw-bold mb-3">
+                        <span>Total:</span>
+                        <span class="text-naranja" id="totalCarrito">S/. 0.00</span>
+                    </div>
+                    
+                    <button class="btn btn-success w-100 mb-2" onclick="confirmarVenta()" id="btnConfirmar" disabled>
+                        ✅ Confirmar Venta
+                    </button>
+                    <button class="btn btn-outline-danger w-100" onclick="vaciarCarrito()" id="btnVaciar" disabled>
+                        🗑️ Vaciar Carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Formulario oculto para enviar el carrito al servidor -->
+<form id="formConfirmar" action="<?= BASE_URL ?>index.php?controller=caja&action=confirmar" method="POST" class="d-none">
+    <input type="hidden" name="cliente" id="inputCliente">
+    <input type="hidden" name="carrito" id="inputCarrito">
+</form>
+
+<script>
+    // Variables globales
+    let carrito = {}; 
+    let clienteSeleccionado = document.getElementById('selectCliente').value;
+
+    // Filtrar productos
+    document.getElementById('buscador').addEventListener('keyup', function() {
+        let filtro = this.value.toLowerCase();
+        document.querySelectorAll('.producto-item').forEach(item => {
+            let nombre = item.getAttribute('data-nombre');
+            item.style.display = nombre.includes(filtro) ? '' : 'none';
+        });
+    });
+
+    // Detectar cambio de cliente
+    document.getElementById('selectCliente').addEventListener('change', function() {
+        let nuevoCliente = this.value;
+        if (clienteSeleccionado !== '' && clienteSeleccionado !== nuevoCliente) {
+            if (Object.keys(carrito).length > 0) {
+                if(confirm('Cambiaste de cliente. ¿Deseas vaciar el carrito actual?')) {
+                    carrito = {};
+                    renderizarCarrito();
+                }
+            }
+        }
+        clienteSeleccionado = nuevoCliente;
+    });
+
+    // Agregar producto
+    function agregarAlCarrito(id, nombre, precio, stock) {
+        if (carrito[id]) {
+            if (carrito[id].cantidad >= stock) {
+                alert("No hay más stock de este producto.");
+                return;
+            }
+            carrito[id].cantidad++;
+        } else {
+            carrito[id] = { id, nombre, precio, cantidad: 1, stock };
+        }
+        renderizarCarrito();
+    }
+
+    // Modificar cantidad manualmente
+    function cambiarCantidad(id, delta) {
+        if (carrito[id]) {
+            carrito[id].cantidad += delta;
+            if (carrito[id].cantidad <= 0) {
+                delete carrito[id];
+            } else if (carrito[id].cantidad > carrito[id].stock) {
+                carrito[id].cantidad = carrito[id].stock;
+                alert("Límite de stock alcanzado.");
+            }
+            renderizarCarrito();
+        }
+    }
+
+    // Vaciar carrito completo
+    function vaciarCarrito() {
+        if(confirm('¿Seguro que deseas vaciar el carrito?')) {
+            carrito = {};
+            renderizarCarrito();
+        }
+    }
+
+    // Dibujar el carrito en el HTML
+    function renderizarCarrito() {
+        let lista = document.getElementById('carritoLista');
+        let btnConfirmar = document.getElementById('btnConfirmar');
+        let btnVaciar = document.getElementById('btnVaciar');
+        let total = 0;
+        let itemsHtml = '';
+
+        if (Object.keys(carrito).length === 0) {
+            lista.innerHTML = '<p class="text-center text-muted mt-4" id="carritoVacio">El carrito está vacío.</p>';
+            document.getElementById('totalCarrito').innerText = 'S/. 0.00';
+            btnConfirmar.disabled = true;
+            btnVaciar.disabled = true;
+            return;
+        }
+
+        for (let id in carrito) {
+            let item = carrito[id];
+            let subtotal = item.precio * item.cantidad;
+            total += subtotal;
+
+            itemsHtml += `
+                <div class="carrito-item d-flex justify-content-between align-items-center">
+                    <div style="flex: 1;">
+                        <div class="fw-bold" style="font-size: 0.9rem;">${item.nombre}</div>
+                        <div class="text-muted small">S/. ${item.precio.toFixed(2)}</div>
+                    </div>
+                    <div class="d-flex align-items-center mx-2">
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="cambiarCantidad(${id}, -1)">-</button>
+                        <span class="mx-2 fw-bold">${item.cantidad}</span>
+                        <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="cambiarCantidad(${id}, 1)">+</button>
+                    </div>
+                    <div class="fw-bold" style="width: 70px; text-align: right;">S/. ${subtotal.toFixed(2)}</div>
+                </div>
+            `;
+        }
+
+        lista.innerHTML = itemsHtml;
+        document.getElementById('totalCarrito').innerText = 'S/. ' + total.toFixed(2);
+        btnConfirmar.disabled = false;
+        btnVaciar.disabled = false;
+    }
+
+    // Enviar al servidor (Controlador)
+    function confirmarVenta() {
+        let cliente = document.getElementById('selectCliente').value;
+        if (cliente === '') {
+            alert('Por favor, selecciona un cliente antes de confirmar.');
+            return;
+        }
+
+        // Convertir carrito a JSON
+        let carritoArray = Object.values(carrito);
+        if (carritoArray.length === 0) return;
+
+        document.getElementById('inputCliente').value = cliente;
+        document.getElementById('inputCarrito').value = JSON.stringify(carritoArray);
+        
+        // Enviar el formulario
+        document.getElementById('formConfirmar').submit();
+    }
+</script>
 
 <?php include __DIR__ . '/partials/footer.php'; ?>
