@@ -5,7 +5,7 @@
     <div class="text-center mb-5">
         <h1 class="fw-bold text-naranja">💸 Punto de Venta</h1>
         <p class="text-muted fs-5">Bienvenido al sistema de gestión Minimarket</p>
-        <img src="<?= BASE_URL ?>assets/icono-transparent.webp" alt="Logo" style="max-width: 150px;">
+        <img src="<?= BASE_URL ?>assets/icono-transparent.webp" alt="Logo" style="max-width: 175px;">
     </div>
 
     <div class="row justify-content-center g-4">

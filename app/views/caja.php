@@ -35,10 +35,14 @@
                 <?php foreach ($productos as $p): ?>
                     <div class="col-6 col-md-4 col-xl-3 producto-item" data-nombre="<?= strtolower(htmlspecialchars($p['nombre_producto'])) ?>">
                         <div class="producto-btn" onclick="agregarAlCarrito(<?= $p['id_producto'] ?>, '<?= addslashes($p['nombre_producto']) ?>', <?= $p['precio_unitario'] ?>, <?= $p['stock'] ?>)">
-                            <div class="small text-muted"><?= htmlspecialchars($p['nombre_catg']) ?></div>
-                            <div class="fw-bold"><?= htmlspecialchars($p['nombre_producto']) ?></div>
+                            <!-- Icono grande de la categoría -->
+                            <div class="display-5 mb-2"><?= $p['icono'] ?></div>
+                            <!-- Nombre del producto -->
+                            <div class="fw-bold" style="font-size: 0.9rem; line-height: 1.2;"><?= htmlspecialchars($p['nombre_producto']) ?></div>
+                            <!-- Precio -->
                             <div class="precio mt-2">S/. <?= number_format($p['precio_unitario'], 2) ?></div>
-                            <div class="small text-muted">Stock: <?= $p['stock'] ?></div>
+                            <!-- Stock (opcional, letra pequeña) -->
+                            <div class="small text-muted mt-1">Stock: <?= $p['stock'] ?></div>
                         </div>
                     </div>
                 <?php endforeach; ?>

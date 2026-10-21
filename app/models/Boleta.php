@@ -114,4 +114,16 @@ class Boleta {
 
         return true;
     }
+
+    // Obtiene el total vendido agrupado por fecha (para la gráfica)
+    public function obtener_ingresos_por_dia(){
+        $sql = "
+            SELECT DATE(fecha_emision) as dia, SUM(total) as total_dia
+            FROM boletas
+            WHERE fecha_emision >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            GROUP BY DATE(fecha_emision)
+            ORDER BY dia ASC
+        ";
+        return $this->bd->query($sql);
+    }
 }

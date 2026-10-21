@@ -27,7 +27,32 @@ class CajaControlador {
         //obtiene listas de clientes y productos
         $clientes = $cli->obtener_todos();
         // En CajaControlador::mostrar()
-        $productos = $pdto->obtener_todos_con_categoria(); // Usamos el método con JOIN
+        #$productos = $pdto->obtener_todos_con_categoria(); // Usamos el método con JOIN
+
+         // En CajaControlador::mostrar()
+        $productosRaw = $pdto->obtener_todos_con_categoria();
+        
+        // Array de iconos por nombre de categoría (ajústalo a tus categorías reales)
+        $iconosCategorias = [
+            'Lácteos'      => '🥛',
+            'Chocolates'   => '🍫',
+            'Abarrotes'    => '🌾',
+            'Bebidas'      => '🥤',
+            'Limpieza'     => '🧹',
+            'Panadería'    => '🍞',
+            'Carnes'       => '🥩',
+            'Snacks'       => '🍿',
+            'Frutas'       => '🍎',
+            'Cuidado Personal' => '🧴'
+        ];
+
+        $productos = [];
+        while ($p = $productosRaw->fetch_assoc()) {
+            // Busca el icono (si no está, usa uno por defecto)
+            $cat = $p['nombre_catg'];
+            $p['icono'] = isset($iconosCategorias[$cat]) ? $iconosCategorias[$cat] : '📦';
+            $productos[] = $p;
+        }
 
         //obtiene cliente seleccionado actualmente
         $clienteActual = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';

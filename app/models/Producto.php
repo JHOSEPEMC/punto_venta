@@ -83,4 +83,15 @@ class Producto {
         $stmt->bind_param("ii", $cantidad, $id);
         return $stmt->execute();
     }
+
+    // Cuenta cuántos productos hay por cada categoría
+    public function contar_productos_por_categoria(){
+        $sql = "
+            SELECT categorias.nombre_catg, COUNT(productos.id_producto) as cantidad
+            FROM productos
+            LEFT JOIN categorias ON productos.id_categoria = categorias.id_categoria
+            GROUP BY categorias.id_categoria
+        ";
+        return $this->bd->query($sql);
+    }
 }

@@ -31,6 +31,16 @@ class VentasControlador {
         //meses disponibles para el <select>
         $meses = $boletaModel->obtener_meses_disponibles();
 
+        // Datos para la gráfica de los últimos 7 días
+        $graficaData = $boletaModel->obtener_ingresos_por_dia();
+        $labels = [];
+        $valores = [];
+        
+        while ($row = $graficaData->fetch_assoc()) {
+            $labels[] = $row['dia'];
+            $valores[] = $row['total_dia'];
+        }
+
         require_once APP_PATH . '/views/ventas.php';
     }
 }
