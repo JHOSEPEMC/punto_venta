@@ -11,8 +11,8 @@ class Boleta {
     private function consulta_base(){
         return "
             SELECT boletas.*,
-                   clientes.nombre_apellido as cliente,
-                   empleados.nombre_apellido as empleado
+                    clientes.nombre_apellido as cliente,
+                    empleados.nombre_apellido as empleado
             FROM boletas
             LEFT JOIN clientes  ON boletas.dni_cliente  = clientes.dni_cliente
             LEFT JOIN empleados ON boletas.dni_empleado = empleados.dni_empleado
@@ -20,11 +20,17 @@ class Boleta {
     }
 
     //inserta una boleta y devuelve el id generado usando sentencia preparada
+        //inserta una boleta y devuelve el id generado
+       //inserta una boleta y devuelve el id generado
     public function insertar($dni_cliente, $dni_empleado, $total, $fecha){
-        $sql = "INSERT INTO boletas (numero_boleta, dni_cliente, dni_empleado, total, fecha_emision)
-                VALUES ('', ?, ?, ?, ?)";
+        //generamos un token único e imposible de adivinar (32 caracteres)
+        $token = bin2hex(random_bytes(16));
+
+        //inserta la boleta (ahora con el token)
+        $sql = "INSERT INTO boletas (numero_boleta, token, dni_cliente, dni_empleado, total, fecha_emision)
+                VALUES ('', ?, ?, ?, ?, ?)";
         $stmt = $this->bd->prepare($sql);
-        $stmt->bind_param("ssds", $dni_cliente, $dni_empleado, $total, $fecha);
+        $stmt->bind_param("sssds", $token, $dni_cliente, $dni_empleado, $total, $fecha);
         $stmt->execute();
 
         //obtiene el id recién generado
@@ -39,6 +45,15 @@ class Boleta {
         $stmt->execute();
 
         return $id_boleta;
+    }
+
+    //devuelve una boleta por su token seguro
+    public function obtener_por_token($token){
+        $sql = $this->consulta_base() . " WHERE boletas.token = ?";
+        $stmt = $this->bd->prepare($sql);
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
     }
 
     //devuelve todas las boletas ordenadas por id descendente

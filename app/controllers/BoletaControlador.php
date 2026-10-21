@@ -12,32 +12,37 @@ class BoletaControlador {
     }
 
     //método privado que prepara los datos y usa el servicio PdfService
-    private function generar_pdf($descargar){
+        private function generar_pdf($descargar){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        //recibe el id de la boleta desde la URL
+        //recibe id o token de la URL
         $id_boleta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-        //si no hay id, redirige al listado de ventas
-        if ($id_boleta === 0) {
-            header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
-            exit;
-        }
+        $token = isset($_GET['token']) ? trim($_GET['token']) : '';
 
         //instancia modelos
         $boletaModel = new Boleta();
-        $ventaModel  = new Venta();
-
-        //obtiene la cabecera y el detalle de la boleta
-        $cabecera = $boletaModel->obtener_por_id($id_boleta);
-        if (!$cabecera) {
-            header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
+        
+        //busca por token (seguro) o por id (interno)
+        if ($token !== '') {
+            $cabecera = $boletaModel->obtener_por_token($token);
+        } elseif ($id_boleta !== 0) {
+            $cabecera = $boletaModel->obtener_por_id($id_boleta);
+        } else {
+            header('Location: ' . BASE_URL . 'index.php?controller=home&action=mostrar');
             exit;
         }
 
+        //si no se encontró la boleta
+        if (!$cabecera) {
+            exit('Boleta no encontrada o token inválido.');
+        }
+
+        //obtenemos el id real de la boleta
+        $id_boleta = $cabecera['id_boleta']; 
+        $ventaModel = new Venta();
         $detalle = $ventaModel->obtener_por_boleta($id_boleta);
 
-        //arma la estructura que la vista necesita
+        //arma la estructura para la vista
         $boleta = [
             'numero_boleta' => $cabecera['numero_boleta'],
             'fecha'         => $cabecera['fecha_emision'],
@@ -46,9 +51,9 @@ class BoletaControlador {
             'empleado'      => $cabecera['empleado'] !== null ? $cabecera['empleado'] : 'fuera del sistema',
             'items'         => [],
             'total'         => $cabecera['total'],
+            'qr'            => '' //inicializamos vacío
         ];
 
-        //recorre el detalle y calcula subtotales
         while ($fila = $detalle->fetch_assoc()) {
             $boleta['items'][] = [
                 'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
@@ -58,14 +63,45 @@ class BoletaControlador {
             ];
         }
 
-        //captura el HTML generado por la vista
+        //=========================================================
+        // 🚀 GENERACIÓN DEL QR
+        //=========================================================
+        
+        //1. usamos el token en lugar del id en la URL pública
+        $urlBoleta = BASE_URL . 'index.php?controller=boleta&action=mostrar&token=' . $cabecera['token'];
+        
+        //2. instanciamos el servicio
+        $qrService = new QrService();
+        
+        //3. definimos la ruta física (usando realpath para limpiar los ..)
+        $carpetaQrs = realpath(__DIR__ . '/../../assets/qrs');
+        $rutaFisicaQr = $carpetaQrs . DIRECTORY_SEPARATOR . 'boleta_' . $id_boleta . '.png';
+        
+        //4. generamos el QR
+        $qrService->generar($urlBoleta, $rutaFisicaQr);
+        
+        //5. pasamos la RUTA FÍSICA a la vista (Dompdf la leerá del disco)
+        $boleta['qr'] = $rutaFisicaQr;
+
+        //=========================================================
+
+        //carga Dompdf
+        require_once VENDOR_PATH . '/autoload.php';
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new \Dompdf\Dompdf($options);
+
+        //captura el HTML de la vista
         ob_start();
         include APP_PATH . '/views/boleta.php';
         $html = ob_get_clean();
 
-        //usa el servicio para generar el PDF
-        $pdf = new PdfService();
-        $pdf->generar($html, 'boleta_' . $boleta['numero_boleta'] . '.pdf', $descargar);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
+        $dompdf->stream($nombreArchivo, ['Attachment' => $descargar]);
         exit;
     }
 }

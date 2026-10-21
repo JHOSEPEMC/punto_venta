@@ -36,5 +36,23 @@
     </table>
 
     <p class="total">TOTAL: S/. <?= number_format($boleta['total'], 2) ?></p>
+
+    <!-- ... contenido anterior de la boleta ... -->
+
+    <!-- Sección del Código QR -->
+    <?php if (!empty($boleta['qr']) && file_exists($boleta['qr'])): ?>
+        <div style="text-align: center; margin-top: 40px; border-top: 1px dashed #999; padding-top: 20px;">
+            <p style="font-size: 11px; color: #555;">Escanea este código para ver tu boleta en digital:</p>
+            <?php 
+                //lee la imagen física y la convierte a base64 para que Dompdf la entienda
+                $datosQr = file_get_contents($boleta['qr']);
+                $base64Qr = 'data:image/png;base64,' . base64_encode($datosQr);
+            ?>
+            <img src="<?= $base64Qr ?>" style="width: 120px; height: 120px;">
+        </div>
+    <?php endif; ?>
+
+</body>
+</html>
 </body>
 </html>
