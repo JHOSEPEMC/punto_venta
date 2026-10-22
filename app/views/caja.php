@@ -2,6 +2,17 @@
 <?php include __DIR__ . '/partials/nav.php'; ?>
 
 <div class="container-fluid mt-4">
+    
+    <!-- Encabezado: Título y Botón de Cerrar Turno -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold m-0 text-naranja">Caja Abierta</h4>
+        <a href="<?= BASE_URL ?>index.php?controller=caja&action=cerrar_caja" 
+            class="btn btn-outline-danger btn-sm"
+            onclick="return confirm('¿Seguro que deseas cerrar tu turno? No podrás vender hasta que el admin te asigne una nueva caja.');">
+            🔒 Cerrar Turno
+        </a>
+    </div>
+
     <!-- Mensaje de error si no hay stock -->
     <?php if (!empty($mensajeCaja)): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -13,16 +24,20 @@
     <div class="row">
         <!-- ================= COLUMNA IZQUIERDA: PRODUCTOS ================= -->
         <div class="col-lg-8 mb-4">
+            
+            <!-- Selector de Cliente con opción Genérica -->
             <div class="card p-3 mb-3">
                 <label class="fw-bold mb-2">Cliente:</label>
                 <select class="form-select border-warning" id="selectCliente" required>
-                    <option value="">-- Selecciona un cliente --</option>
+                    <option value="GENERICO" <?= $clienteActual == 'GENERICO' ? 'selected' : '' ?>>-- Cliente Genérico (Venta Rápida) --</option>
                     <?php foreach ($clientes as $c): ?>
                         <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>)
+                            <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>) 
+                            <?= !empty($c['ruc']) ? ' - RUC: '.htmlspecialchars($c['ruc']) : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <div class="form-text mt-1">Selecciona un cliente registrado o usa el genérico para ventas al paso.</div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -80,7 +95,8 @@
 </div>
 
 <!-- Formulario oculto para enviar el carrito al servidor -->
-<form id="formConfirmar" action="<?= BASE_URL ?>index.php?controller=caja&action=confirmar" method="POST" class="d-none">
+<!-- 🚀 Agregamos target="_blank" para que se abra en pestaña nueva -->
+<form id="formConfirmar" action="<?= BASE_URL ?>index.php?controller=caja&action=confirmar" method="POST" target="_blank" class="d-none">
     <input type="hidden" name="cliente" id="inputCliente">
     <input type="hidden" name="carrito" id="inputCarrito">
 </form>
@@ -193,22 +209,31 @@
     }
 
     // Enviar al servidor (Controlador)
-    function confirmarVenta() {
+        function confirmarVenta() {
         let cliente = document.getElementById('selectCliente').value;
         if (cliente === '') {
-            alert('Por favor, selecciona un cliente antes de confirmar.');
+            alert('Por favor, selecciona un cliente.');
             return;
         }
 
-        // Convertir carrito a JSON
         let carritoArray = Object.values(carrito);
         if (carritoArray.length === 0) return;
 
         document.getElementById('inputCliente').value = cliente;
         document.getElementById('inputCarrito').value = JSON.stringify(carritoArray);
         
-        // Enviar el formulario
+        // 1. Enviamos el formulario (se abre en pestaña nueva por el target="_blank")
         document.getElementById('formConfirmar').submit();
+        
+        // 2. Limpiamos el carrito visualmente de inmediato
+        carrito = {};
+        renderizarCarrito();
+
+        // 3. 🚀 EL TRUCO: Recargamos esta misma pestaña después de 1.5 segundos
+        // para que traiga el stock actualizado de la base de datos.
+        setTimeout(function() {
+            window.location.reload();
+        }, 500); 
     }
 </script>
 

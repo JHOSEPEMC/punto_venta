@@ -3,13 +3,13 @@ class AdminPanelControlador {
 
     //Verifica que haya admin logueado. Si no, redirige.
     private function verificar_sesion(){
-    if (session_status() === PHP_SESSION_NONE) session_start();
-    if (!isset($_SESSION['AdminDni'])) {
-        //redirige al nuevo controlador unificado
-        header('Location: ' . BASE_URL . 'index.php?controller=admin&action=login');
-        exit;
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['AdminDni'])) {
+            //redirige al nuevo controlador unificado
+            header('Location: ' . BASE_URL . 'index.php?controller=admin&action=login');
+            exit;
+        }
     }
-}
 
     //═══════════ PANEL PRINCIPAL ═══════════
     //muestra el panel principal del admin
@@ -18,6 +18,34 @@ class AdminPanelControlador {
 
         //pasa el nombre del admin a la vista
         $adminNombre = isset($_SESSION['AdminNombre']) ? $_SESSION['AdminNombre'] : 'Administrador';
+
+        //obtenemos datos para el dashboard
+        $bd = Conexion::conectar();
+        
+        //1. Ventas totales de hoy
+        $sqlHoy = "SELECT SUM(total) as total_hoy FROM boletas WHERE DATE(fecha_emision) = CURDATE()";
+        $resHoy = $bd->query($sqlHoy)->fetch_assoc();
+        $ventasHoy = $resHoy['total_hoy'] ?? 0;
+
+        //2. Productos con bajo stock (menos de 5)
+        $sqlStock = "SELECT COUNT(*) as bajo_stock FROM productos WHERE stock <= 5";
+        $resStock = $bd->query($sqlStock)->fetch_assoc();
+        $bajoStock = $resStock['bajo_stock'];
+
+        //3. Empleados registrados
+        $sqlEmp = "SELECT COUNT(*) as total_emp FROM empleados";
+        $resEmp = $bd->query($sqlEmp)->fetch_assoc();
+        $totalEmpleados = $resEmp['total_emp'];
+
+        //4. Datos para la gráfica de ventas (últimos 7 días)
+        $boletaModel = new Boleta();
+        $graficaData = $boletaModel->obtener_ingresos_por_dia();
+        $labels = [];
+        $valores = [];
+        while ($row = $graficaData->fetch_assoc()) {
+            $labels[] = date('d/m', strtotime($row['dia']));
+            $valores[] = $row['total_dia'];
+        }
 
         require_once APP_PATH . '/views/admin/panel.php';
     }
@@ -213,5 +241,95 @@ class AdminPanelControlador {
 
         header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarClientes');
         exit;
+    }
+
+    //═══════════ EMPLEADOS ═══════════
+    public function listarEmpleados(){
+        $this->verificar_sesion();
+        $emp = new Empleado();
+        $empleados = $emp->obtener_todos();
+        require_once APP_PATH . '/views/admin/empleado_listar.php';
+    }
+
+    public function agregarEmpleado(){
+        $this->verificar_sesion();
+        $emp = new Empleado();
+        $mensaje = '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $dni = trim($_POST['dni']);
+            $nombre = trim($_POST['nombre']);
+            $telefono = trim($_POST['telefono']);
+            $pass = trim($_POST['pass']);
+
+            if ($dni === '' || $nombre === '' || $pass === '') {
+                $mensaje = 'Todos los campos son obligatorios';
+            } else {
+                if ($emp->insertar($dni, $nombre, $telefono, $pass)) {
+                    $mensaje = 'Empleado registrado';
+                } else {
+                    $mensaje = 'Error al registrar';
+                }
+            }
+        }
+        require_once APP_PATH . '/views/admin/empleado_agregar.php';
+    }
+
+    public function eliminarEmpleado(){
+        $this->verificar_sesion();
+        $dni = isset($_GET['dni']) ? $_GET['dni'] : '';
+        if ($dni !== '') {
+            $emp = new Empleado();
+            $emp->eliminar($dni);
+        }
+        header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarEmpleados');
+        exit;
+    }
+
+    //═══════════ CAJAS ═══════════
+    // Control de cajas (Solo las que están activas)
+    public function listarCajas(){
+        $this->verificar_sesion();
+        $cajaModel = new Caja();
+        
+        // Usamos el nuevo método de solo abiertas
+        $cajas = $cajaModel->obtener_todas_abiertas();
+        
+        require_once APP_PATH . '/views/admin/caja_listar.php';
+    }
+
+    // NUEVO: Historial completo de cajas
+    public function historialCajas(){
+        $this->verificar_sesion();
+        $cajaModel = new Caja();
+        
+        $cajas = $cajaModel->obtener_historial();
+        
+        require_once APP_PATH . '/views/admin/caja_historial.php';
+    }
+
+    public function asignarCaja(){
+        $this->verificar_sesion();
+        $mensaje = '';
+        
+        // 🚀 OBTENEMOS LA LISTA DE EMPLEADOS PARA EL SELECTOR
+        $emp = new Empleado();
+        $empleados = $emp->obtener_todos();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $dni_empleado = $_POST['empleado'];
+            $sencillo = (float)$_POST['sencillo'];
+            
+            $cajaModel = new Caja();
+            
+            if ($cajaModel->asignarSencillo($dni_empleado, $sencillo)) {
+                $mensaje = 'Caja asignada correctamente. El empleado ya puede habilitarla.';
+            } else {
+                $mensaje = 'Error al asignar la caja.';
+            }
+        }
+        
+        // Pasamos la variable $empleados a la vista
+        require_once APP_PATH . '/views/admin/caja_asignar.php';
     }
 }

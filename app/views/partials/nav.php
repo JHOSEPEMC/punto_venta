@@ -26,8 +26,8 @@ $esAdmin    = isset($_SESSION['AdminDni']);
                 <!-- Solo si hay ADMIN logueado -->
                 <?php if ($esAdmin): ?>
                     <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar">Panel Admin</a></li>
-                    <!-- Cerrar Sesión Admin -->
-                    <li><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=admin&action=logout">Cerrar Sesión Admin</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar">Ventas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>index.php?controller=admin&action=logout">Cerrar Sesión Admin</a></li>
                 <?php endif; ?>
 
                 <!-- Logins: solo si NADIE está logueado -->

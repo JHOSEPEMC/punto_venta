@@ -97,11 +97,110 @@ class BoletaControlador {
         $html = ob_get_clean();
 
         $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
+        //CAMBIO: Tamaño de ticket térmico (80mm de ancho)
+        $dompdf->setPaper([0, 0, 226, 800], 'portrait'); 
         $dompdf->render();
 
         $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
         $dompdf->stream($nombreArchivo, ['Attachment' => $descargar]);
+
+        // ... código anterior de Dompdf ...
+
+        $dompdf->render();
+
+        // Si se está visualizando (no descargando), forzamos la impresión automática
+        if (!$descargar) {
+            $output = $dompdf->output();
+            $base64 = base64_encode($output);
+            
+            // Al cargar el iframe, lanzamos la ventana de impresión
+            echo "
+            <html>
+            <head><title>Imprimiendo Boleta...</title></head>
+            <body style='margin:0;'>
+                <iframe id='pdfFrame' src='data:application/pdf;base64,{$base64}#print' style='width:100vw; height:100vh; border:none;'></iframe>
+                <script>
+                    window.onload = function() {
+                        // Damos 1 segundo para que el PDF se renderice internamente
+                        setTimeout(function() {
+                            document.getElementById('pdfFrame').contentWindow.print();
+                            // (Opcional) Cerrar pestaña después de imprimir
+                            // setTimeout(function() { window.close(); }, 2000);
+                        }, 1000);
+                    };
+                </script>
+            </body>
+            </html>
+            ";
+            exit;
+        }
+
+        // Si es descarga, flujo normal
+        $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
+        $dompdf->stream($nombreArchivo, ['Attachment' => true]);
+        exit;
+    }
+    
+    // Método para generar el PDF directamente desde otro controlador
+    public function mostrar_pdf($id_boleta){
+        // Forzamos la sesión por si acaso
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
+        $boletaModel = new Boleta();
+        $cabecera = $boletaModel->obtener_por_id($id_boleta);
+
+        if (!$cabecera) {
+            exit('Boleta no encontrada.');
+        }
+
+        $ventaModel = new Venta();
+        $detalle = $ventaModel->obtener_por_boleta($id_boleta);
+
+        // Armar estructura
+        $boleta = [
+            'numero_boleta' => $cabecera['numero_boleta'],
+            'fecha'         => $cabecera['fecha_emision'],
+            'cliente'       => $cabecera['cliente'] !== null ? $cabecera['cliente'] : 'Clientes Varios',
+            'clienteDNI'    => $cabecera['dni_cliente'],
+            'empleado'      => $cabecera['empleado'] !== null ? $cabecera['empleado'] : 'fuera del sistema',
+            'items'         => [],
+            'total'         => $cabecera['total'],
+            'qr'            => '' 
+        ];
+
+        while ($fila = $detalle->fetch_assoc()) {
+            $boleta['items'][] = [
+                'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
+                'cantidad' => $fila['cantidad'],
+                'precio'   => $fila['precio_unitario'],
+                'subtotal' => $fila['precio_unitario'] * $fila['cantidad'],
+            ];
+        }
+
+        // Generar QR (asumiendo que ya tienes esto)
+        $urlBoleta = BASE_URL . 'index.php?controller=boleta&action=mostrar&token=' . $cabecera['token'];
+        $qrService = new QrService();
+        $carpetaQrs = realpath(__DIR__ . '/../../assets/qrs');
+        $rutaFisicaQr = $carpetaQrs . DIRECTORY_SEPARATOR . 'boleta_' . $id_boleta . '.png';
+        $qrService->generar($urlBoleta, $rutaFisicaQr);
+        $boleta['qr'] = $rutaFisicaQr;
+
+        // Generar PDF
+        require_once VENDOR_PATH . '/autoload.php';
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new \Dompdf\Dompdf($options);
+
+        ob_start();
+        include APP_PATH . '/views/boleta.php';
+        $html = ob_get_clean();
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper([0, 0, 226, 800], 'portrait'); // Tamaño ticket térmico
+        $dompdf->render();
+
+        // Imprimir el PDF directamente
+        $dompdf->stream('boleta_' . $boleta['numero_boleta'] . '.pdf', ['Attachment' => false]);
         exit;
     }
 }

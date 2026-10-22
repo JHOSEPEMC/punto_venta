@@ -20,20 +20,17 @@ class Boleta {
     }
 
     //inserta una boleta y devuelve el id generado usando sentencia preparada
-        //inserta una boleta y devuelve el id generado
-       //inserta una boleta y devuelve el id generado
-    public function insertar($dni_cliente, $dni_empleado, $total, $fecha){
-        //generamos un token único e imposible de adivinar (32 caracteres)
+    public function insertar($dni_cliente, $dni_empleado, $total, $fecha, $id_caja = null){
+        //generamos un token único e imposible de adivinar
         $token = bin2hex(random_bytes(16));
 
-        //inserta la boleta (ahora con el token)
-        $sql = "INSERT INTO boletas (numero_boleta, token, dni_cliente, dni_empleado, total, fecha_emision)
-                VALUES ('', ?, ?, ?, ?, ?)";
+        //inserta la boleta (con el id_caja)
+        $sql = "INSERT INTO boletas (numero_boleta, token, id_caja, dni_cliente, dni_empleado, total, fecha_emision)
+                VALUES ('', ?, ?, ?, ?, ?, ?)";
         $stmt = $this->bd->prepare($sql);
-        $stmt->bind_param("sssds", $token, $dni_cliente, $dni_empleado, $total, $fecha);
+        $stmt->bind_param("sissds", $token, $id_caja, $dni_cliente, $dni_empleado, $total, $fecha);
         $stmt->execute();
 
-        //obtiene el id recién generado
         $id_boleta = $this->bd->insert_id;
 
         //genera el número visible con formato BOL-000001

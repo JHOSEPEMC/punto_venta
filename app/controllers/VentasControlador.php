@@ -4,6 +4,16 @@ class VentasControlador {
     public function mostrar(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
+        // Verificamos si es empleado o admin
+        $esEmpleado = isset($_SESSION['UsuarioDni']);
+        $esAdmin    = isset($_SESSION['AdminDni']);
+
+        // Si no es ninguno de los dos, lo mandamos al home
+        if (!$esEmpleado && !$esAdmin) {
+            header('Location: ' . BASE_URL . 'index.php?controller=home&action=mostrar');
+            exit;
+        }
+
         $carritoTotal = isset($_SESSION['totalCarrito']) ? $_SESSION['totalCarrito'] : null;
         if ($carritoTotal != null) $_SESSION['totalCarrito'] = null;
 
@@ -31,13 +41,12 @@ class VentasControlador {
         //meses disponibles para el <select>
         $meses = $boletaModel->obtener_meses_disponibles();
 
-        // Datos para la gráfica de los últimos 7 días
+        // Datos para la gráfica
         $graficaData = $boletaModel->obtener_ingresos_por_dia();
         $labels = [];
         $valores = [];
-        
         while ($row = $graficaData->fetch_assoc()) {
-            $labels[] = $row['dia'];
+            $labels[] = date('d/m', strtotime($row['dia']));
             $valores[] = $row['total_dia'];
         }
 

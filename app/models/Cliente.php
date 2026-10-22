@@ -7,19 +7,22 @@ class Cliente {
         $this->bd = Conexion::conectar();
     }
 
-    //inserta un nuevo cliente usando sentencia preparada
-    public function insertar($dni, $nombre, $telefono){
-        $sql = "INSERT INTO clientes (dni_cliente, nombre_apellido, telefono) VALUES (?, ?, ?)";
+    //inserta un nuevo cliente (con soporte para RUC/Negocio)
+    public function insertar($dni, $nombre, $telefono, $ruc = null, $razon_social = null, $direccion = null){
+        $sql = "INSERT INTO clientes (dni_cliente, nombre_apellido, telefono, ruc, razon_social, direccion) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->bd->prepare($sql);
-        $stmt->bind_param("sss", $dni, $nombre, $telefono);
+        $stmt->bind_param("ssssss", $dni, $nombre, $telefono, $ruc, $razon_social, $direccion);
         return $stmt->execute();
     }
 
-    //actualiza un cliente usando sentencia preparada
-    public function actualizar($dni, $nombre, $telefono){
-        $sql = "UPDATE clientes SET nombre_apellido = ?, telefono = ? WHERE dni_cliente = ?";
+    //actualiza un cliente
+    public function actualizar($dni, $nombre, $telefono, $ruc = null, $razon_social = null, $direccion = null){
+        $sql = "UPDATE clientes 
+                SET nombre_apellido = ?, telefono = ?, ruc = ?, razon_social = ?, direccion = ? 
+                WHERE dni_cliente = ?";
         $stmt = $this->bd->prepare($sql);
-        $stmt->bind_param("sss", $nombre, $telefono, $dni);
+        $stmt->bind_param("ssssss", $nombre, $telefono, $ruc, $razon_social, $direccion, $dni);
         return $stmt->execute();
     }
 

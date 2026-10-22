@@ -43,16 +43,23 @@ class Carrito {
         $_SESSION['carrito'] = [];
     }
 
-    //devuelve todos los items del carrito
+    //devuelve todos los items del carrito (con validación)
     public static function obtener(){
-        return isset($_SESSION['carrito']) ? $_SESSION['carrito'] : [];
+        // Si la sesión del carrito no existe, la inicializamos
+        if (!isset($_SESSION['carrito'])) {
+            $_SESSION['carrito'] = [];
+        }
+        return $_SESSION['carrito'];
     }
 
-    //calcula el total del carrito
+    //calcula el total del carrito (con validación)
     public static function total(){
         $total = 0;
-        foreach ($_SESSION['carrito'] as $item) {
-            $total += $item['precio'] * $item['cantidad'];
+        // Validamos que la sesión exista antes de recorrerla
+        if (isset($_SESSION['carrito']) && is_array($_SESSION['carrito'])) {
+            foreach ($_SESSION['carrito'] as $item) {
+                $total += $item['precio'] * $item['cantidad'];
+            }
         }
         return $total;
     }
