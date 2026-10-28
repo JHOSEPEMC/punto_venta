@@ -5,44 +5,44 @@ class AdminPanelControlador {
     private function verificar_sesion(){
         if (session_status() === PHP_SESSION_NONE) session_start();
         if (!isset($_SESSION['AdminDni'])) {
-            //redirige al nuevo controlador unificado
             header('Location: ' . BASE_URL . 'index.php?controller=admin&action=login');
             exit;
         }
     }
 
     //═══════════ PANEL PRINCIPAL ═══════════
-    //muestra el panel principal del admin
     public function mostrar(){
         $this->verificar_sesion();
 
-        //pasa el nombre del admin a la vista
         $adminNombre = isset($_SESSION['AdminNombre']) ? $_SESSION['AdminNombre'] : 'Administrador';
 
-        //obtenemos datos para el dashboard
-        $bd = Conexion::conectar();
-        
+        // 🚀 USAMOS LOS DAO
+        $boletaDAO = new BoletaDAO();
+        $pdtoDAO = new ProductoDAO();
+        $empDAO = new EmpleadoDAO();
+        $pdo = Conexion::conectar(); // Para las consultas rápidas del dashboard
+
         //1. Ventas totales de hoy
-        $sqlHoy = "SELECT SUM(total) as total_hoy FROM boletas WHERE DATE(fecha_emision) = CURDATE()";
-        $resHoy = $bd->query($sqlHoy)->fetch_assoc();
+        $stmtHoy = $pdo->query("SELECT SUM(total) as total_hoy FROM boletas WHERE DATE(fecha_emision) = CURDATE()");
+        $resHoy = $stmtHoy->fetch();
         $ventasHoy = $resHoy['total_hoy'] ?? 0;
 
         //2. Productos con bajo stock (menos de 5)
-        $sqlStock = "SELECT COUNT(*) as bajo_stock FROM productos WHERE stock <= 5";
-        $resStock = $bd->query($sqlStock)->fetch_assoc();
+        $stmtStock = $pdo->query("SELECT COUNT(*) as bajo_stock FROM productos WHERE stock <= 5");
+        $resStock = $stmtStock->fetch();
         $bajoStock = $resStock['bajo_stock'];
 
         //3. Empleados registrados
-        $sqlEmp = "SELECT COUNT(*) as total_emp FROM empleados";
-        $resEmp = $bd->query($sqlEmp)->fetch_assoc();
+        $stmtEmp = $pdo->query("SELECT COUNT(*) as total_emp FROM empleados");
+        $resEmp = $stmtEmp->fetch();
         $totalEmpleados = $resEmp['total_emp'];
 
         //4. Datos para la gráfica de ventas (últimos 7 días)
-        $boletaModel = new Boleta();
-        $graficaData = $boletaModel->obtener_ingresos_por_dia();
+        $graficaData = $boletaDAO->obtener_ingresos_por_dia();
         $labels = [];
         $valores = [];
-        while ($row = $graficaData->fetch_assoc()) {
+        // 🚀 foreach en lugar de while
+        foreach ($graficaData as $row) {
             $labels[] = date('d/m', strtotime($row['dia']));
             $valores[] = $row['total_dia'];
         }
@@ -51,21 +51,17 @@ class AdminPanelControlador {
     }
 
     //═══════════ PRODUCTOS ═══════════
-
     public function listarProductos(){
         $this->verificar_sesion();
-
-        $pdto = new Producto();
-        $productos = $pdto->obtener_todos();
-
+        $pdtoDAO = new ProductoDAO();
+        $productos = $pdtoDAO->obtener_todos();
         require_once APP_PATH . '/views/admin/producto_listar.php';
     }
 
     public function agregarProducto(){
         $this->verificar_sesion();
-
-        $pdto = new Producto();
-        $categorias = $pdto->obtener_categorias();
+        $pdtoDAO = new ProductoDAO();
+        $categorias = $pdtoDAO->obtener_categorias();
         $mensaje = '';
         $tipo = '';
 
@@ -78,11 +74,11 @@ class AdminPanelControlador {
             if ($nombre === '' || $idCat === 0) {
                 $mensaje = 'Todos los campos son obligatorios';
                 $tipo = 'danger';
-            } elseif ($pdto->existe_nombre($nombre)) {
+            } elseif ($pdtoDAO->existe_nombre($nombre)) {
                 $mensaje = 'Ya existe un producto con ese nombre';
                 $tipo = 'warning';
             } else {
-                if ($pdto->insertar($nombre, $idCat, $precio, $stock)) {
+                if ($pdtoDAO->insertar($nombre, $idCat, $precio, $stock)) {
                     $mensaje = 'Producto agregado correctamente';
                     $tipo = 'success';
                 } else {
@@ -91,24 +87,21 @@ class AdminPanelControlador {
                 }
             }
         }
-
         require_once APP_PATH . '/views/admin/producto_agregar.php';
     }
 
     public function editarProducto(){
         $this->verificar_sesion();
-        
-
-        $pdto = new Producto();
+        $pdtoDAO = new ProductoDAO();
         $id = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
 
-        $producto = $pdto->obtener_por_id($id);
+        $producto = $pdtoDAO->obtener_por_id($id);
         if (!$producto) {
             header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarProductos');
             exit;
         }
 
-        $categorias = $pdto->obtener_categorias();
+        $categorias = $pdtoDAO->obtener_categorias();
         $mensaje = '';
         $tipo = '';
 
@@ -122,49 +115,41 @@ class AdminPanelControlador {
                 $mensaje = 'Todos los campos son obligatorios';
                 $tipo = 'danger';
             } else {
-                if ($pdto->actualizar($id, $nombre, $idCat, $precio, $stock)) {
+                if ($pdtoDAO->actualizar($id, $nombre, $idCat, $precio, $stock)) {
                     $mensaje = 'Producto actualizado correctamente';
                     $tipo = 'success';
-                    $producto = $pdto->obtener_por_id($id);
+                    $producto = $pdtoDAO->obtener_por_id($id);
                 } else {
                     $mensaje = 'Error al actualizar';
                     $tipo = 'danger';
                 }
             }
         }
-
         require_once APP_PATH . '/views/admin/producto_editar.php';
     }
 
     public function eliminarProducto(){
         $this->verificar_sesion();
-        
-
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id > 0) {
-            $pdto = new Producto();
-            $pdto->eliminar($id);
+            $pdtoDAO = new ProductoDAO();
+            $pdtoDAO->eliminar($id);
         }
-
         header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarProductos');
         exit;
     }
 
     //═══════════ CLIENTES ═══════════
-
     public function listarClientes(){
         $this->verificar_sesion();
-
-        $cli = new Cliente();
-        $clientes = $cli->obtener_todos();
-
+        $cliDAO = new ClienteDAO();
+        $clientes = $cliDAO->obtener_todos();
         require_once APP_PATH . '/views/admin/cliente_listar.php';
     }
 
     public function agregarCliente(){
         $this->verificar_sesion();
-
-        $cli = new Cliente();
+        $cliDAO = new ClienteDAO();
         $mensaje = '';
         $tipo = '';
 
@@ -176,11 +161,11 @@ class AdminPanelControlador {
             if ($dni === '' || $nombre === '' || $telefono === '') {
                 $mensaje = 'Todos los campos son obligatorios';
                 $tipo = 'danger';
-            } elseif ($cli->existe($dni)) {
+            } elseif ($cliDAO->obtener_por_dni($dni)) { // 🚀 Cambiado a obtener_por_dni
                 $mensaje = 'Ya existe un cliente con ese DNI';
                 $tipo = 'warning';
             } else {
-                if ($cli->insertar($dni, $nombre, $telefono)) {
+                if ($cliDAO->insertar($dni, $nombre, $telefono)) {
                     $mensaje = 'Cliente agregado correctamente';
                     $tipo = 'success';
                 } else {
@@ -189,17 +174,15 @@ class AdminPanelControlador {
                 }
             }
         }
-
         require_once APP_PATH . '/views/admin/cliente_agregar.php';
     }
 
     public function editarCliente(){
         $this->verificar_sesion();
-
-        $cli = new Cliente();
+        $cliDAO = new ClienteDAO();
         $dni = isset($_GET['dni']) ? trim($_GET['dni']) : trim($_POST['dni']);
 
-        $cliente = $cli->obtener_por_dni($dni);
+        $cliente = $cliDAO->obtener_por_dni($dni);
         if (!$cliente) {
             header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarClientes');
             exit;
@@ -216,29 +199,27 @@ class AdminPanelControlador {
                 $mensaje = 'Todos los campos son obligatorios';
                 $tipo = 'danger';
             } else {
-                if ($cli->actualizar($dni, $nombre, $telefono)) {
+                // 🚀 Asegúrate de tener el método actualizar en ClienteDAO
+                if ($cliDAO->actualizar($dni, $nombre, $telefono)) {
                     $mensaje = 'Cliente actualizado correctamente';
                     $tipo = 'success';
-                    $cliente = $cli->obtener_por_dni($dni);
+                    $cliente = $cliDAO->obtener_por_dni($dni);
                 } else {
                     $mensaje = 'Error al actualizar';
                     $tipo = 'danger';
                 }
             }
         }
-
         require_once APP_PATH . '/views/admin/cliente_editar.php';
     }
 
     public function eliminarCliente(){
         $this->verificar_sesion();
-
         $dni = isset($_GET['dni']) ? trim($_GET['dni']) : '';
         if ($dni !== '') {
-            $cli = new Cliente();
-            $cli->eliminar($dni);
+            $cliDAO = new ClienteDAO();
+            $cliDAO->eliminar($dni);
         }
-
         header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarClientes');
         exit;
     }
@@ -246,14 +227,14 @@ class AdminPanelControlador {
     //═══════════ EMPLEADOS ═══════════
     public function listarEmpleados(){
         $this->verificar_sesion();
-        $emp = new Empleado();
-        $empleados = $emp->obtener_todos();
+        $empDAO = new EmpleadoDAO();
+        $empleados = $empDAO->obtener_todos();
         require_once APP_PATH . '/views/admin/empleado_listar.php';
     }
 
     public function agregarEmpleado(){
         $this->verificar_sesion();
-        $emp = new Empleado();
+        $empDAO = new EmpleadoDAO();
         $mensaje = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -265,7 +246,7 @@ class AdminPanelControlador {
             if ($dni === '' || $nombre === '' || $pass === '') {
                 $mensaje = 'Todos los campos son obligatorios';
             } else {
-                if ($emp->insertar($dni, $nombre, $telefono, $pass)) {
+                if ($empDAO->insertar($dni, $nombre, $telefono, $pass)) {
                     $mensaje = 'Empleado registrado';
                 } else {
                     $mensaje = 'Error al registrar';
@@ -279,32 +260,25 @@ class AdminPanelControlador {
         $this->verificar_sesion();
         $dni = isset($_GET['dni']) ? $_GET['dni'] : '';
         if ($dni !== '') {
-            $emp = new Empleado();
-            $emp->eliminar($dni);
+            $empDAO = new EmpleadoDAO();
+            $empDAO->eliminar($dni);
         }
         header('Location: ' . BASE_URL . 'index.php?controller=adminPanel&action=listarEmpleados');
         exit;
     }
 
     //═══════════ CAJAS ═══════════
-    // Control de cajas (Solo las que están activas)
     public function listarCajas(){
         $this->verificar_sesion();
-        $cajaModel = new Caja();
-        
-        // Usamos el nuevo método de solo abiertas
-        $cajas = $cajaModel->obtener_todas_abiertas();
-        
+        $cajaDAO = new CajaDAO();
+        $cajas = $cajaDAO->obtener_todas_abiertas();
         require_once APP_PATH . '/views/admin/caja_listar.php';
     }
 
-    // NUEVO: Historial completo de cajas
     public function historialCajas(){
         $this->verificar_sesion();
-        $cajaModel = new Caja();
-        
-        $cajas = $cajaModel->obtener_historial();
-        
+        $cajaDAO = new CajaDAO();
+        $cajas = $cajaDAO->obtener_historial();
         require_once APP_PATH . '/views/admin/caja_historial.php';
     }
 
@@ -312,24 +286,23 @@ class AdminPanelControlador {
         $this->verificar_sesion();
         $mensaje = '';
         
-        // 🚀 OBTENEMOS LA LISTA DE EMPLEADOS PARA EL SELECTOR
-        $emp = new Empleado();
-        $empleados = $emp->obtener_todos();
+        // 🚀 USAMOS EL EMPLEADO DAO
+        $empDAO = new EmpleadoDAO();
+        $empleados = $empDAO->obtener_todos();
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dni_empleado = $_POST['empleado'];
             $sencillo = (float)$_POST['sencillo'];
             
-            $cajaModel = new Caja();
+            $cajaDAO = new CajaDAO();
             
-            if ($cajaModel->asignarSencillo($dni_empleado, $sencillo)) {
+            // 🚀 USAMOS EL MÉTODO DEL DAO
+            if ($cajaDAO->asignarSencillo($dni_empleado, $sencillo)) {
                 $mensaje = 'Caja asignada correctamente. El empleado ya puede habilitarla.';
             } else {
                 $mensaje = 'Error al asignar la caja.';
             }
         }
-        
-        // Pasamos la variable $empleados a la vista
         require_once APP_PATH . '/views/admin/caja_asignar.php';
     }
 }

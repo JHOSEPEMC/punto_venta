@@ -25,18 +25,24 @@
         <!-- ================= COLUMNA IZQUIERDA: PRODUCTOS ================= -->
         <div class="col-lg-8 mb-4">
             
-            <!-- Selector de Cliente con opción Genérica -->
+            <!-- Selector de Cliente con botón para agregar nuevo -->
             <div class="card p-3 mb-3">
                 <label class="fw-bold mb-2">Cliente:</label>
-                <select class="form-select border-warning" id="selectCliente" required>
-                    <option value="GENERICO" <?= $clienteActual == 'GENERICO' ? 'selected' : '' ?>>-- Cliente Genérico (Venta Rápida) --</option>
-                    <?php foreach ($clientes as $c): ?>
-                        <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>) 
-                            <?= !empty($c['ruc']) ? ' - RUC: '.htmlspecialchars($c['ruc']) : '' ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="d-flex gap-2">
+                    <select class="form-select border-warning" id="selectCliente" required>
+                        <option value="GENERICO" <?= $clienteActual == 'GENERICO' ? 'selected' : '' ?>>-- Cliente Genérico (Venta Rápida) --</option>
+                        <?php foreach ($clientes as $c): ?>
+                            <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>) 
+                                <?= !empty($c['ruc']) ? ' - RUC: '.htmlspecialchars($c['ruc']) : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <!-- 🚀 BOTÓN PARA ABRIR EL MODAL DE NUEVO CLIENTE -->
+                    <button type="button" class="btn btn-naranja fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
+                        + Nuevo
+                    </button>
+                </div>
                 <div class="form-text mt-1">Selecciona un cliente registrado o usa el genérico para ventas al paso.</div>
             </div>
 
@@ -94,8 +100,40 @@
     </div>
 </div>
 
+<!-- ================= MODAL PARA REGISTRAR CLIENTE RÁPIDO ================= -->
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-naranja text-white">
+                <h5 class="modal-title fw-bold">Registrar Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alertaCliente"></div>
+                <form id="formNuevoCliente">
+                    <div class="mb-3">
+                        <label class="fw-bold">DNI:</label>
+                        <input type="text" name="dni" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Nombre Completo:</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Teléfono (Opcional):</label>
+                        <input type="text" name="telefono" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-naranja" id="btnGuardarCliente">Guardar Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Formulario oculto para enviar el carrito al servidor -->
-<!-- 🚀 Agregamos target="_blank" para que se abra en pestaña nueva -->
 <form id="formConfirmar" action="<?= BASE_URL ?>index.php?controller=caja&action=confirmar" method="POST" target="_blank" class="d-none">
     <input type="hidden" name="cliente" id="inputCliente">
     <input type="hidden" name="carrito" id="inputCarrito">
@@ -209,7 +247,7 @@
     }
 
     // Enviar al servidor (Controlador)
-        function confirmarVenta() {
+    function confirmarVenta() {
         let cliente = document.getElementById('selectCliente').value;
         if (cliente === '') {
             alert('Por favor, selecciona un cliente.');
@@ -229,12 +267,52 @@
         carrito = {};
         renderizarCarrito();
 
-        // 3. 🚀 EL TRUCO: Recargamos esta misma pestaña después de 1.5 segundos
+        // 3. Recargamos esta misma pestaña después de 1.5 segundos
         // para que traiga el stock actualizado de la base de datos.
         setTimeout(function() {
             window.location.reload();
-        }, 500); 
+        }, 1500); 
     }
+
+    // 🚀 Lógica para registrar cliente sin recargar la página
+    document.getElementById('btnGuardarCliente').addEventListener('click', function() {
+        const form = document.getElementById('formNuevoCliente');
+        const formData = new FormData(form);
+        const alertaDiv = document.getElementById('alertaCliente');
+        
+        fetch('<?= BASE_URL ?>index.php?controller=cliente&action=registrar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.exito) {
+                // Mostrar mensaje de éxito
+                alertaDiv.innerHTML = `<div class="alert alert-${data.tipo}">${data.mensaje}</div>`;
+                
+                // Agregar el nuevo cliente al selector
+                const select = document.getElementById('selectCliente');
+                const newOption = new Option(`${data.nombre} (${data.dni})`, data.dni, true, true);
+                select.add(newOption);
+                
+                // Actualizar la variable global
+                clienteSeleccionado = data.dni;
+
+                // Cerrar el modal después de 1.5 segundos y limpiar
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
+                    form.reset();
+                    alertaDiv.innerHTML = '';
+                }, 1500);
+            } else {
+                // Mostrar error
+                alertaDiv.innerHTML = `<div class="alert alert-${data.tipo}">${data.mensaje}</div>`;
+            }
+        })
+        .catch(error => {
+            alertaDiv.innerHTML = `<div class="alert alert-danger">Error de conexión.</div>`;
+        });
+    });
 </script>
 
 <?php include __DIR__ . '/partials/footer.php'; ?>

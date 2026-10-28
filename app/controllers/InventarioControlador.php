@@ -1,23 +1,29 @@
 <?php
 class InventarioControlador {
-
-    //muestra el listado de productos con su categoría
-        public function mostrar(){
+    public function mostrar(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        $pdto = new Producto();
-        $productos = $pdto->obtener_todos_con_categoria();
-        $categorias = $pdto->obtener_categorias(); // Para los botones de filtro
+        // 1. Instanciamos los DAO necesarios
+        $pdtoDAO = new ProductoDAO();
+        $catDAO  = new CategoriaDAO();
 
-        // Datos para la gráfica (cuántos productos hay por categoría)
-        $datosGrafica = $pdto->contar_productos_por_categoria();
+        // 2. Obtenemos los productos (con su categoría)
+        $productos = $pdtoDAO->obtener_todos_con_categoria();
+        
+        // 3. Obtenemos la lista de categorías para los botones de filtro
+        $categorias = $catDAO->obtener_todas();
+
+        // 4. Datos para la gráfica (usando el método del DAO que cuenta productos)
+        $datosGrafica = $pdtoDAO->contar_productos_por_categoria();
         $labelsCat = [];
         $valoresCat = [];
-        while ($row = $datosGrafica->fetch_assoc()) {
+        
+        foreach ($datosGrafica as $row) {
             $labelsCat[] = $row['nombre_catg'];
             $valoresCat[] = $row['cantidad'];
         }
 
+        // 5. Cargamos la vista
         require_once APP_PATH . '/views/inventario.php';
     }
 }

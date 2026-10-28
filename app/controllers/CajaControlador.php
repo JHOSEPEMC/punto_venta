@@ -12,32 +12,28 @@ class CajaControlador {
         }
 
         //verificamos si el empleado tiene una caja abierta
-        $cajaModel = new Caja();
-        $cajaActiva = $cajaModel->obtener_activa($userDNI);
+        $cajaDAO = new CajaDAO();
+        $cajaActiva = $cajaDAO->obtener_activa($userDNI);
 
         //si no hay caja abierta, mostramos la pantalla de apertura
         if (!$cajaActiva) {
-            // Verificamos si el admin ya le asignó un sencillo (caja en estado 'cerrada')
-            $cajaAsignada = $cajaModel->obtener_ultima_cerrada($userDNI);
-            
-            // Pasamos esta variable a la vista (true si el admin ya le asignó, false si no)
+            $cajaAsignada = $cajaDAO->obtener_ultima_cerrada($userDNI);
             $tieneCajaAsignada = ($cajaAsignada) ? true : false;
-
             require_once APP_PATH . '/views/caja_apertura.php';
             return;
         }
 
-        //instancia modelos
-        $emp  = new Empleado();
-        $cli  = new Cliente();
-        $pdto = new Producto();
+        //instancia DAOs
+        $empDAO  = new EmpleadoDAO();
+        $cliDAO  = new ClienteDAO();
+        $pdtoDAO = new ProductoDAO();
 
         //obtiene los datos del empleado logueado
-        $empData = $emp->obtener_por_dni($userDNI);
+        $empData = $empDAO->obtener_por_dni($userDNI);
         $empleado = new Empleado($empData['nombre_apellido'], $empData['telefono']);
         
         //obtiene los productos con categoría para los iconos
-        $productosRaw = $pdto->obtener_todos_con_categoria(); 
+        $productosRaw = $pdtoDAO->obtener_todos_con_categoria(); 
         
         $iconosCategorias = [
             'Lácteos' => '🥛', 'Chocolates' => '🍫', 'Abarrotes' => '🌾',
@@ -46,16 +42,16 @@ class CajaControlador {
         ];
 
         $productos = [];
-        while ($p = $productosRaw->fetch_assoc()) {
+        // 🚀 CAMBIO: foreach en lugar de while->fetch_assoc()
+        foreach ($productosRaw as $p) { 
             $cat = $p['nombre_catg'];
             $p['icono'] = isset($iconosCategorias[$cat]) ? $iconosCategorias[$cat] : '📦';
             $productos[] = $p;
         }
 
-        $clientes = $cli->obtener_todos();
+        $clientes = $cliDAO->obtener_todos();
         $clienteActual = isset($_SESSION['clienteDNI']) ? $_SESSION['clienteDNI'] : '';
-        //$items = Carrito::obtener();
-        //$total = Carrito::total();
+        
         $items = [];
         $total = 0;
         $mensajeCaja = isset($_SESSION['mensajeCaja']) ? $_SESSION['mensajeCaja'] : '';
@@ -74,24 +70,23 @@ class CajaControlador {
             exit;
         }
 
-        $cajaModel = new Caja();
+        $cajaDAO = new CajaDAO();
         
-        // 1. Verificamos si ya tiene una caja abierta (por si acaso)
-        $cajaAbierta = $cajaModel->obtener_activa($userDNI);
+        // 1. Verificamos si ya tiene una caja abierta
+        $cajaAbierta = $cajaDAO->obtener_activa($userDNI);
         if ($cajaAbierta) {
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
             exit;
         }
 
-        // 2. Buscamos la caja que el admin le asignó (estado cerrada)
-        $cajaAsignada = $cajaModel->obtener_ultima_cerrada($userDNI);
+        // 2. Buscamos la caja que el admin le asignó
+        $cajaAsignada = $cajaDAO->obtener_ultima_cerrada($userDNI);
 
         if ($cajaAsignada) {
             // 3. La reabrimos
-            $cajaModel->reabrir($cajaAsignada['id_caja']);
+            $cajaDAO->reabrir($cajaAsignada['id_caja']);
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
         } else {
-            // Si no hay caja asignada, mostramos el mensaje de error
             $_SESSION['mensajeCaja'] = 'No tienes una caja asignada. Por favor, pide al administrador que te asigne un sencillo.';
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
         }
@@ -117,7 +112,7 @@ class CajaControlador {
         exit;
     }
 
-    //confirma la venta: inserta en BD y redirige al historial
+    //confirma la venta: inserta en BD y redirige a la boleta
     public function confirmar(){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -136,13 +131,14 @@ class CajaControlador {
             exit;
         }
 
-        $pdto     = new Producto();
-        $boleta   = new Boleta();
-        $venta    = new Venta();
-        $cajaModel = new Caja();
+        // Instanciamos todos los DAO necesarios
+        $pdtoDAO   = new ProductoDAO();
+        $boletaDAO = new BoletaDAO();
+        $ventaDAO  = new VentaDAO();
+        $cajaDAO   = new CajaDAO();
 
-        //obtener la caja activa del empleado
-        $cajaActiva = $cajaModel->obtener_activa($userDNI);
+        // Obtener la caja activa del empleado
+        $cajaActiva = $cajaDAO->obtener_activa($userDNI);
         if (!$cajaActiva) {
             header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
             exit;
@@ -156,34 +152,23 @@ class CajaControlador {
 
         $fecha = date("Y-m-d H:i:s");
 
-        //insertar la boleta
-        $id_boleta = $boleta->insertar($clienteDNI, $userDNI, $total, $fecha, $id_caja);
+        // 1. Insertar la boleta
+        $id_boleta = $boletaDAO->insertar($clienteDNI, $userDNI, $total, $fecha, $id_caja);
 
-        //insertar el detalle
+        // 2. Insertar el detalle y descontar stock
         foreach ($items as $item) {
-            $pdto->descontar_stock($item['id'], $item['cantidad']);
-            $venta->insertar($id_boleta, $item['id'], $item['cantidad'], $item['precio']);
+            $pdtoDAO->descontar_stock($item['id'], $item['cantidad']);
+            $ventaDAO->insertar($id_boleta, $item['id'], $item['cantidad'], $item['precio']);
         }
 
-        // 🚀 Guardamos el ID en sesión para abrirlo en ventas.php
-        $_SESSION['boleta_nueva'] = $id_boleta;
-        
-        // Redirigimos al historial de ventas
-        header('Location: ' . BASE_URL . 'index.php?controller=ventas&action=mostrar');
-        
-        // ... (código donde insertas la boleta y el detalle) ...
-        // 6. Redirigimos a la URL de la boleta (con su token seguro)
-        // Como el formulario tiene target="_blank", esto se abrirá en la pestaña nueva.
-        $boletaData = $boleta->obtener_por_id($id_boleta);
-        
-        // ... (insertar la boleta y el detalle) ...
-
-        // 🚀 VACIAMOS EL CARRITO DE LA SESIÓN
+        // 3. Vaciamos el carrito de la sesión
         Carrito::vaciar(); 
         unset($_SESSION['clienteDNI']);
 
-        // 6. Redirigimos a la URL de la boleta (con su token seguro)
-        $boletaData = $boleta->obtener_por_id($id_boleta);
+        // 4. Obtenemos el token para redirigir al PDF
+        $boletaData = $boletaDAO->obtener_por_id($id_boleta);
+        
+        // 5. Redirigimos a la URL de la boleta
         header('Location: ' . BASE_URL . 'index.php?controller=boleta&action=mostrar&token=' . $boletaData['token']);
         exit;
     }
@@ -197,28 +182,26 @@ class CajaControlador {
             exit;
         }
 
-        $cajaModel = new Caja();
-        $cajaActiva = $cajaModel->obtener_activa($userDNI);
+        $cajaDAO = new CajaDAO();
+        $cajaActiva = $cajaDAO->obtener_activa($userDNI);
 
         if ($cajaActiva) {
             $id_caja = $cajaActiva['id_caja'];
-            $totalVentas = $cajaModel->calcular_ventas($id_caja);
+            $totalVentas = $cajaDAO->calcular_ventas($id_caja);
             $totalEnCaja = $cajaActiva['sencillo_inicial'] + $totalVentas;
 
             // Cerramos la caja en la BD
-            $cajaModel->cerrar($id_caja);
+            $cajaDAO->cerrar($id_caja);
             
             // Datos para la vista
             $sencillo_inicial = $cajaActiva['sencillo_inicial'];
             $total_ventas = $totalVentas;
             $total_en_caja = $totalEnCaja;
 
-            // Cargamos la nueva vista bonita
             require_once APP_PATH . '/views/caja_cierre.php';
             exit;
         }
         
-        // Si no había caja activa, volvemos a la caja
         header('Location: ' . BASE_URL . 'index.php?controller=caja&action=mostrar');
         exit;
     }

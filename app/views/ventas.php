@@ -22,41 +22,60 @@
     <h2 class="mb-4">Historial de Ventas</h2>
 
     <!-- Filtros -->
-    <div class="card mb-4 p-3">
-        <div class="row">
-            <!-- Buscador (Izquierda) -->
-            <div class="col-md-6">
+    <div class="card mb-4 p-3 shadow-sm border-0">
+        <div class="row align-items-end">
+            
+            <!-- Buscador por Boleta (Izquierda) -->
+            <div class="col-md-4 mb-2">
+                <label class="form-label fw-bold small text-muted">Buscar Boleta</label>
                 <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
                     <input type="hidden" name="controller" value="ventas">
                     <input type="hidden" name="action" value="mostrar">
-                    <input type="text" name="numero_boleta" class="form-control me-2" placeholder="Buscar boleta..." value="<?= htmlspecialchars($numeroFiltro ?? '') ?>">
+                    <input type="text" name="numero_boleta" class="form-control me-2" placeholder="Ej: BOL-000001" value="<?= htmlspecialchars($numeroFiltro ?? '') ?>">
                     <button type="submit" class="btn btn-naranja">Buscar</button>
                 </form>
             </div>
 
+            <!-- 🚀 FILTRO POR MES RESTAURADO (Centro) -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label fw-bold small text-muted">Filtrar por Mes</label>
+                <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
+                    <input type="hidden" name="controller" value="ventas">
+                    <input type="hidden" name="action" value="mostrar">
+                    <select name="mes" class="form-select me-2">
+                        <option value="">-- Todos --</option>
+                        <?php foreach ($meses as $m): ?>
+                            <option value="<?= $m['mes'] ?>" <?= ($mesFiltro ?? '') == $m['mes'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($m['mes']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn btn-outline-secondary">Filtrar</button>
+                </form>
+            </div>
+
             <!-- Botones de acción (Derecha) -->
-            <div class="col-md-6 text-end">
+            <div class="col-md-5 text-end mb-2">
                 
-                <!--AQUÍ SE IMPLEMENTÓ EL NUEVO CÓDIGO DEL BOTÓN DE ADMIN-->
+                <!-- BOTÓN DE ADMIN -->
                 <?php if (isset($_SESSION['AdminDni'])): ?>
-                    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-secondary">← Volver al Panel Admin</a>
+                    <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-secondary">← Panel Admin</a>
                 <?php endif; ?>
-                <!--FIN DEL NUEVO CÓDIGO-->
                 
-                <a href="<?= BASE_URL ?>index.php?controller=excel&action=ventas&mes=<?= urlencode($mesFiltro ?? '') ?>" class="btn btn-success">📊 Exportar a Excel</a>
-                <a href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar" class="btn btn-outline-secondary">🔄 Limpiar</a>
+                <a href="<?= BASE_URL ?>index.php?controller=excel&action=ventas&mes=<?= urlencode($mesFiltro ?? '') ?>" class="btn btn-success">📊 Excel</a>
+                <a href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar" class="btn btn-outline-danger">🔄 Limpiar</a>
             </div>
         </div>
     </div>
 
     <!-- Gráfica de Ingresos -->
-    <div class="card p-4 mb-4">
+    <div class="card p-4 mb-4 shadow-sm border-0">
         <h5 class="fw-bold mb-3">Tendencia de Ingresos (Últimos 7 días)</h5>
         <canvas id="graficaIngresos" height="80"></canvas>
     </div>
 
     <!-- Tabla de Boletas -->
-    <div class="card p-4">
+    <div class="card p-4 shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-dark">

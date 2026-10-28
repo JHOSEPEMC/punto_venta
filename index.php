@@ -6,16 +6,29 @@ error_reporting(E_ALL); //Esto le dice a PHP: "reporta TODOS los errores, warnin
 //Rutas base (estamos en /punto_venta/)
 define('BASE_PATH', __DIR__);                  //.../punto_venta
 define('APP_PATH',  __DIR__ . '/app');         //.../punto_venta/app
-define('BASE_URL', 'http://192.168.1.227/punto_venta/');           //URL base para enlaces
+define('BASE_URL', 'http://192.168.1.56/punto_venta/');           //URL base para enlaces
 define('VENDOR_PATH', __DIR__ . '/vendor');    //Para la direccion vendor
 
 //Autocarga de modelos y controladores
 spl_autoload_register(function ($clase) {
-    if (file_exists(APP_PATH . '/models/' . $clase . '.php')) {
+    // Buscar en config
+    if (file_exists(APP_PATH . '/config/' . $clase . '.php')) {
+        require_once APP_PATH . '/config/' . $clase . '.php';
+    }
+    // Buscar en dao
+    elseif (file_exists(APP_PATH . '/dao/' . $clase . '.php')) {
+        require_once APP_PATH . '/dao/' . $clase . '.php';
+    }
+    // Buscar en models (para Carrito.php que se queda ahí)
+    elseif (file_exists(APP_PATH . '/models/' . $clase . '.php')) {
         require_once APP_PATH . '/models/' . $clase . '.php';
-    } elseif (file_exists(APP_PATH . '/controllers/' . $clase . '.php')) {
+    }
+    // Buscar en controllers
+    elseif (file_exists(APP_PATH . '/controllers/' . $clase . '.php')) {
         require_once APP_PATH . '/controllers/' . $clase . '.php';
-    } elseif (file_exists(APP_PATH . '/services/' . $clase . '.php')) {  // ← AGREGAR
+    }
+    // Buscar en services
+    elseif (file_exists(APP_PATH . '/services/' . $clase . '.php')) {
         require_once APP_PATH . '/services/' . $clase . '.php';
     }
 });

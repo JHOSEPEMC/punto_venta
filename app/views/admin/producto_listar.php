@@ -28,7 +28,9 @@
                         <tr>
                             <td class="text-muted">#<?= $p['id_producto'] ?></td>
                             <td class="fw-bold"><?= htmlspecialchars($p['nombre_producto']) ?></td>
-                            <td><span class="badge bg-secondary"><?= htmlspecialchars($p['id_categoria']) ?></span></td>
+                            
+                            <!-- En app/views/admin/producto_listar.php <td><span class="badge bg-secondary"><?= htmlspecialchars($p['id_categoria']) ?></span></td>-->
+                            <td><span class="badge bg-secondary"><?= htmlspecialchars($p['nombre_catg'] ?? $p['id_categoria']) ?></span></td>
                             <td>S/. <?= number_format($p['precio_unitario'], 2) ?></td>
                             <td>
                                 <?php if($p['stock'] <= 5): ?>

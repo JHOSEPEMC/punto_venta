@@ -12,21 +12,22 @@ class BoletaControlador {
     }
 
     //método privado que prepara los datos y usa el servicio PdfService
-        private function generar_pdf($descargar){
+    private function generar_pdf($descargar){
         if (session_status() === PHP_SESSION_NONE) session_start();
 
         //recibe id o token de la URL
         $id_boleta = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $token = isset($_GET['token']) ? trim($_GET['token']) : '';
 
-        //instancia modelos
-        $boletaModel = new Boleta();
+        // 🚀 INSTANCIAMOS LOS DAO
+        $boletaDAO = new BoletaDAO();
+        $ventaDAO = new VentaDAO();
         
         //busca por token (seguro) o por id (interno)
         if ($token !== '') {
-            $cabecera = $boletaModel->obtener_por_token($token);
+            $cabecera = $boletaDAO->obtener_por_token($token);
         } elseif ($id_boleta !== 0) {
-            $cabecera = $boletaModel->obtener_por_id($id_boleta);
+            $cabecera = $boletaDAO->obtener_por_id($id_boleta);
         } else {
             header('Location: ' . BASE_URL . 'index.php?controller=home&action=mostrar');
             exit;
@@ -39,8 +40,7 @@ class BoletaControlador {
 
         //obtenemos el id real de la boleta
         $id_boleta = $cabecera['id_boleta']; 
-        $ventaModel = new Venta();
-        $detalle = $ventaModel->obtener_por_boleta($id_boleta);
+        $detalle = $ventaDAO->obtener_por_boleta($id_boleta);
 
         //arma la estructura para la vista
         $boleta = [
@@ -54,7 +54,8 @@ class BoletaControlador {
             'qr'            => '' //inicializamos vacío
         ];
 
-        while ($fila = $detalle->fetch_assoc()) {
+        // 🚀 FOREACH EN VEZ DE WHILE
+        foreach ($detalle as $fila) {
             $boleta['items'][] = [
                 'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
                 'cantidad' => $fila['cantidad'],
@@ -97,15 +98,8 @@ class BoletaControlador {
         $html = ob_get_clean();
 
         $dompdf->loadHtml($html);
-        //CAMBIO: Tamaño de ticket térmico (80mm de ancho)
+        //Tamaño de ticket térmico (80mm de ancho)
         $dompdf->setPaper([0, 0, 226, 800], 'portrait'); 
-        $dompdf->render();
-
-        $nombreArchivo = 'boleta_' . $boleta['numero_boleta'] . '.pdf';
-        $dompdf->stream($nombreArchivo, ['Attachment' => $descargar]);
-
-        // ... código anterior de Dompdf ...
-
         $dompdf->render();
 
         // Si se está visualizando (no descargando), forzamos la impresión automática
@@ -121,11 +115,8 @@ class BoletaControlador {
                 <iframe id='pdfFrame' src='data:application/pdf;base64,{$base64}#print' style='width:100vw; height:100vh; border:none;'></iframe>
                 <script>
                     window.onload = function() {
-                        // Damos 1 segundo para que el PDF se renderice internamente
                         setTimeout(function() {
                             document.getElementById('pdfFrame').contentWindow.print();
-                            // (Opcional) Cerrar pestaña después de imprimir
-                            // setTimeout(function() { window.close(); }, 2000);
                         }, 1000);
                     };
                 </script>
@@ -141,22 +132,21 @@ class BoletaControlador {
         exit;
     }
     
-    // Método para generar el PDF directamente desde otro controlador
+    // Método para generar el PDF directamente desde otro controlador (si se llega a usar)
     public function mostrar_pdf($id_boleta){
-        // Forzamos la sesión por si acaso
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        $boletaModel = new Boleta();
-        $cabecera = $boletaModel->obtener_por_id($id_boleta);
+        $boletaDAO = new BoletaDAO();
+        $ventaDAO = new VentaDAO();
+        
+        $cabecera = $boletaDAO->obtener_por_id($id_boleta);
 
         if (!$cabecera) {
             exit('Boleta no encontrada.');
         }
 
-        $ventaModel = new Venta();
-        $detalle = $ventaModel->obtener_por_boleta($id_boleta);
+        $detalle = $ventaDAO->obtener_por_boleta($id_boleta);
 
-        // Armar estructura
         $boleta = [
             'numero_boleta' => $cabecera['numero_boleta'],
             'fecha'         => $cabecera['fecha_emision'],
@@ -168,7 +158,8 @@ class BoletaControlador {
             'qr'            => '' 
         ];
 
-        while ($fila = $detalle->fetch_assoc()) {
+        // 🚀 FOREACH
+        foreach ($detalle as $fila) {
             $boleta['items'][] = [
                 'nombre'   => $fila['producto'] !== null ? $fila['producto'] : 'Producto eliminado',
                 'cantidad' => $fila['cantidad'],
@@ -177,7 +168,6 @@ class BoletaControlador {
             ];
         }
 
-        // Generar QR (asumiendo que ya tienes esto)
         $urlBoleta = BASE_URL . 'index.php?controller=boleta&action=mostrar&token=' . $cabecera['token'];
         $qrService = new QrService();
         $carpetaQrs = realpath(__DIR__ . '/../../assets/qrs');
@@ -185,7 +175,6 @@ class BoletaControlador {
         $qrService->generar($urlBoleta, $rutaFisicaQr);
         $boleta['qr'] = $rutaFisicaQr;
 
-        // Generar PDF
         require_once VENDOR_PATH . '/autoload.php';
         $options = new \Dompdf\Options();
         $options->set('isRemoteEnabled', true);
@@ -196,10 +185,9 @@ class BoletaControlador {
         $html = ob_get_clean();
 
         $dompdf->loadHtml($html);
-        $dompdf->setPaper([0, 0, 226, 800], 'portrait'); // Tamaño ticket térmico
+        $dompdf->setPaper([0, 0, 226, 800], 'portrait');
         $dompdf->render();
 
-        // Imprimir el PDF directamente
         $dompdf->stream('boleta_' . $boleta['numero_boleta'] . '.pdf', ['Attachment' => false]);
         exit;
     }
