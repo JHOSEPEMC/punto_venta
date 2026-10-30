@@ -24,12 +24,12 @@
                 <tbody>
                     <?php foreach ($clientes as $c): ?>
                         <tr>
-                            <td class="fw-bold"><?= htmlspecialchars($c['dni_cliente']) ?></td>
-                            <td><?= htmlspecialchars($c['nombre_apellido']) ?></td>
-                            <td><?= htmlspecialchars($c['telefono']) ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($c->dni) ?></td>
+                            <td><?= htmlspecialchars($c->nombre) ?></td>
+                            <td><?= htmlspecialchars($c->telefono) ?></td>
                             <td class="text-center">
-                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarCliente&dni=<?= $c['dni_cliente'] ?>" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
-                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarCliente&dni=<?= $c['dni_cliente'] ?>"
+                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarCliente&dni=<?= $c->dni ?>" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
+                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarCliente&dni=<?= $c->dni ?>"
                                     class="btn btn-sm btn-outline-danger"
                                     onclick="return confirm('¿Seguro que quieres eliminar este cliente? Sus ventas NO se eliminarán.');" title="Eliminar">🗑️</a>
                             </td>

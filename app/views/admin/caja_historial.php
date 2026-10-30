@@ -24,14 +24,14 @@
                 <tbody>
                     <?php foreach ($cajas as $c): ?>
                         <tr>
-                            <td class="fw-bold"><?= htmlspecialchars($c['empleado']) ?></td>
-                            <td><?= date('d/m/Y H:i', strtotime($c['hora_apertura'])) ?></td>
-                            <td><?= $c['hora_cierre'] ? date('d/m/Y H:i', strtotime($c['hora_cierre'])) : '-' ?></td>
-                            <td>S/. <?= number_format($c['sencillo_inicial'], 2) ?></td>
-                            <td class="text-success">S/. <?= number_format($c['total_ventas'], 2) ?></td>
-                            <td class="fw-bold text-naranja">S/. <?= number_format($c['sencillo_inicial'] + $c['total_ventas'], 2) ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($c->empleado) ?></td>
+                            <td><?= date('d/m/Y H:i', strtotime($c->hora_apertura)) ?></td>
+                            <td><?= $c->hora_cierre ? date('d/m/Y H:i', strtotime($c->hora_cierre)) : '-' ?></td>
+                            <td><?= MONEDA ?> <?= number_format($c->sencillo_inicial, 2) ?></td>
+                            <td class="text-success"><?= MONEDA ?> <?= number_format($c->total_ventas, 2) ?></td>
+                            <td class="fw-bold text-naranja"><?= MONEDA ?> <?= number_format($c->sencillo_inicial + $c->total_ventas, 2) ?></td>
                             <td>
-                                <?php if($c['estado'] == 'abierta'): ?>
+                                <?php if($c->estado == 'abierta'): ?>
                                     <span class="badge bg-success">Abierta</span>
                                 <?php else: ?>
                                     <span class="badge bg-secondary">Cerrada</span>

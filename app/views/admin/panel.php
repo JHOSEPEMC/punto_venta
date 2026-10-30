@@ -7,22 +7,19 @@
         <span class="text-muted">Bienvenido, <strong><?= htmlspecialchars($adminNombre) ?></strong></span>
     </div>
 
-    <!-- Tarjetas de Resumen -->
     <div class="row g-4 mb-4">
-        <!-- Ventas Hoy -->
         <div class="col-md-4">
             <div class="card p-4 shadow-sm border-0 bg-naranja text-white h-100">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-white-50">Ventas de Hoy</h6>
-                        <h2 class="fw-bold m-0">S/ <?= number_format($ventasHoy, 2) ?></h2>
+                        <h2 class="fw-bold m-0"><?= MONEDA ?> <?= number_format($ventasHoy, 2) ?></h2>
                     </div>
                     <div class="display-4 opacity-50">💰</div>
                 </div>
             </div>
         </div>
 
-        <!-- Bajo Stock -->
         <div class="col-md-4">
             <div class="card p-4 shadow-sm border-0 h-100">
                 <div class="d-flex justify-content-between align-items-center">
@@ -35,7 +32,6 @@
             </div>
         </div>
 
-        <!-- Empleados -->
         <div class="col-md-4">
             <div class="card p-4 shadow-sm border-0 h-100">
                 <div class="d-flex justify-content-between align-items-center">
@@ -50,7 +46,6 @@
     </div>
 
     <div class="row">
-        <!-- Gráfica de Ventas -->
         <div class="col-lg-8 mb-4">
             <div class="card p-4 shadow-sm h-100">
                 <h5 class="fw-bold mb-3">Ventas de los Últimos 7 Días</h5>
@@ -58,7 +53,6 @@
             </div>
         </div>
 
-        <!-- Accesos Rápidos -->
         <div class="col-lg-4 mb-4">
             <div class="card p-4 shadow-sm h-100">
                 <h5 class="fw-bold mb-3">Accesos Rápidos</h5>
@@ -82,17 +76,16 @@
 </div>
 
 <script>
-    // Configuración de la gráfica
     const ctxPanel = document.getElementById('graficaPanel').getContext('2d');
     new Chart(ctxPanel, {
-        type: 'bar', // Gráfica de barras (más moderna para el dashboard)
+        type: 'bar',
         data: {
             labels: <?= json_encode($labels) ?>,
             datasets: [{
-                label: 'Ingresos (S/.)',
+                label: 'Ingresos',
                 data: <?= json_encode($valores) ?>,
                 backgroundColor: '#FF7800',
-                borderRadius: 8, // Bordes redondeados en las barras
+                borderRadius: 8,
                 barThickness: 30
             }]
         },

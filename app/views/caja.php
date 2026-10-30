@@ -2,8 +2,6 @@
 <?php include __DIR__ . '/partials/nav.php'; ?>
 
 <div class="container-fluid mt-4">
-    
-    <!-- Encabezado: Título y Botón de Cerrar Turno -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold m-0 text-naranja">Caja Abierta</h4>
         <a href="<?= BASE_URL ?>index.php?controller=caja&action=cerrar_caja" 
@@ -13,7 +11,6 @@
         </a>
     </div>
 
-    <!-- Mensaje de error si no hay stock -->
     <?php if (!empty($mensajeCaja)): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <?= htmlspecialchars($mensajeCaja) ?>
@@ -22,23 +19,20 @@
     <?php endif; ?>
 
     <div class="row">
-        <!-- ================= COLUMNA IZQUIERDA: PRODUCTOS ================= -->
+        <!-- COLUMNA IZQUIERDA: PRODUCTOS -->
         <div class="col-lg-8 mb-4">
-            
-            <!-- Selector de Cliente con botón para agregar nuevo -->
             <div class="card p-3 mb-3">
                 <label class="fw-bold mb-2">Cliente:</label>
                 <div class="d-flex gap-2">
                     <select class="form-select border-warning" id="selectCliente" required>
                         <option value="GENERICO" <?= $clienteActual == 'GENERICO' ? 'selected' : '' ?>>-- Cliente Genérico (Venta Rápida) --</option>
                         <?php foreach ($clientes as $c): ?>
-                            <option value="<?= $c['dni_cliente'] ?>" <?= $clienteActual == $c['dni_cliente'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($c['nombre_apellido']) ?> (<?= $c['dni_cliente'] ?>) 
-                                <?= !empty($c['ruc']) ? ' - RUC: '.htmlspecialchars($c['ruc']) : '' ?>
+                            <option value="<?= $c->dni ?>" <?= $clienteActual == $c->dni ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c->nombre) ?> (<?= $c->dni ?>) 
+                                <?= !empty($c->ruc) ? ' - RUC: '.htmlspecialchars($c->ruc) : '' ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <!-- 🚀 BOTÓN PARA ABRIR EL MODAL DE NUEVO CLIENTE -->
                     <button type="button" class="btn btn-naranja fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
                         + Nuevo
                     </button>
@@ -51,62 +45,49 @@
                 <input type="text" id="buscador" class="form-control w-50" placeholder="🔍 Buscar producto...">
             </div>
 
-            <!-- Lista de Productos (Cuadrícula) -->
             <div class="row g-3" id="listaProductos">
                 <?php foreach ($productos as $p): ?>
-                    <div class="col-6 col-md-4 col-xl-3 producto-item" data-nombre="<?= strtolower(htmlspecialchars($p['nombre_producto'])) ?>">
-                        <div class="producto-btn" onclick="agregarAlCarrito(<?= $p['id_producto'] ?>, '<?= addslashes($p['nombre_producto']) ?>', <?= $p['precio_unitario'] ?>, <?= $p['stock'] ?>)">
-                            <!-- Icono grande de la categoría -->
-                            <div class="display-5 mb-2"><?= $p['icono'] ?></div>
-                            <!-- Nombre del producto -->
-                            <div class="fw-bold" style="font-size: 0.9rem; line-height: 1.2;"><?= htmlspecialchars($p['nombre_producto']) ?></div>
-                            <!-- Precio -->
-                            <div class="precio mt-2">S/. <?= number_format($p['precio_unitario'], 2) ?></div>
-                            <!-- Stock (opcional, letra pequeña) -->
-                            <div class="small text-muted mt-1">Stock: <?= $p['stock'] ?></div>
+                    <div class="col-6 col-md-4 col-xl-3 producto-item" data-nombre="<?= strtolower(htmlspecialchars($p->nombre)) ?>">
+                        <div class="producto-btn" onclick="agregarAlCarrito(<?= $p->id ?>, '<?= addslashes($p->nombre) ?>', <?= $p->precio ?>, <?= $p->stock ?>)">
+                            <div class="display-5 mb-2"><?= $p->icono ?></div>
+                            <div class="fw-bold" style="font-size: 0.9rem; line-height: 1.2;"><?= htmlspecialchars($p->nombre) ?></div>
+                            <div class="precio mt-2"><?= MONEDA ?> <?= number_format($p->precio, 2) ?></div>
+                            <div class="small text-muted mt-1">Stock: <?= $p->stock ?></div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
 
-        <!-- ================= COLUMNA DERECHA: CARRITO ================= -->
+        <!-- COLUMNA DERECHA: CARRITO -->
         <div class="col-lg-4">
             <div class="carrito-sticky">
                 <div class="p-3 bg-naranja text-white rounded-top">
                     <h5 class="m-0">🛒 Carrito de Venta</h5>
                 </div>
-                
                 <div class="carrito-lista" id="carritoLista">
-                    <!-- Los items se cargan con JS -->
                     <p class="text-center text-muted mt-4" id="carritoVacio">El carrito está vacío.</p>
                 </div>
-
                 <div class="p-3 border-top bg-light rounded-bottom">
                     <div class="d-flex justify-content-between fs-5 fw-bold mb-3">
                         <span>Total:</span>
-                        <span class="text-naranja" id="totalCarrito">S/. 0.00</span>
+                        <span class="text-naranja" id="totalCarrito"><?= MONEDA ?> 0.00</span>
                     </div>
-                    
-                    <button class="btn btn-success w-100 mb-2" onclick="confirmarVenta()" id="btnConfirmar" disabled>
-                        ✅ Confirmar Venta
-                    </button>
-                    <button class="btn btn-outline-danger w-100" onclick="vaciarCarrito()" id="btnVaciar" disabled>
-                        🗑️ Vaciar Carrito
-                    </button>
+                    <button class="btn btn-success w-100 mb-2" onclick="confirmarVenta()" id="btnConfirmar" disabled>✅ Confirmar Venta</button>
+                    <button class="btn btn-outline-danger w-100" onclick="vaciarCarrito()" id="btnVaciar" disabled>🗑️ Vaciar Carrito</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ================= MODAL PARA REGISTRAR CLIENTE RÁPIDO ================= -->
+<!-- MODAL NUEVO CLIENTE -->
 <div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-naranja text-white">
                 <h5 class="modal-title fw-bold">Registrar Nuevo Cliente</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div id="alertaCliente"></div>
@@ -133,7 +114,6 @@
     </div>
 </div>
 
-<!-- Formulario oculto para enviar el carrito al servidor -->
 <form id="formConfirmar" action="<?= BASE_URL ?>index.php?controller=caja&action=confirmar" method="POST" target="_blank" class="d-none">
     <input type="hidden" name="cliente" id="inputCliente">
     <input type="hidden" name="carrito" id="inputCarrito">
@@ -181,7 +161,7 @@
         renderizarCarrito();
     }
 
-    // Modificar cantidad manualmente
+    // Modificar cantidad
     function cambiarCantidad(id, delta) {
         if (carrito[id]) {
             carrito[id].cantidad += delta;
@@ -195,7 +175,7 @@
         }
     }
 
-    // Vaciar carrito completo
+    // Vaciar carrito
     function vaciarCarrito() {
         if(confirm('¿Seguro que deseas vaciar el carrito?')) {
             carrito = {};
@@ -203,7 +183,7 @@
         }
     }
 
-    // Dibujar el carrito en el HTML
+    // Dibujar carrito
     function renderizarCarrito() {
         let lista = document.getElementById('carritoLista');
         let btnConfirmar = document.getElementById('btnConfirmar');
@@ -213,7 +193,7 @@
 
         if (Object.keys(carrito).length === 0) {
             lista.innerHTML = '<p class="text-center text-muted mt-4" id="carritoVacio">El carrito está vacío.</p>';
-            document.getElementById('totalCarrito').innerText = 'S/. 0.00';
+            document.getElementById('totalCarrito').innerText = '<?= MONEDA ?> 0.00';
             btnConfirmar.disabled = true;
             btnVaciar.disabled = true;
             return;
@@ -228,25 +208,25 @@
                 <div class="carrito-item d-flex justify-content-between align-items-center">
                     <div style="flex: 1;">
                         <div class="fw-bold" style="font-size: 0.9rem;">${item.nombre}</div>
-                        <div class="text-muted small">S/. ${item.precio.toFixed(2)}</div>
+                        <div class="text-muted small"><?= MONEDA ?> ${item.precio.toFixed(2)}</div>
                     </div>
                     <div class="d-flex align-items-center mx-2">
                         <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="cambiarCantidad(${id}, -1)">-</button>
                         <span class="mx-2 fw-bold">${item.cantidad}</span>
                         <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="cambiarCantidad(${id}, 1)">+</button>
                     </div>
-                    <div class="fw-bold" style="width: 70px; text-align: right;">S/. ${subtotal.toFixed(2)}</div>
+                    <div class="fw-bold" style="width: 70px; text-align: right;"><?= MONEDA ?> ${subtotal.toFixed(2)}</div>
                 </div>
             `;
         }
 
         lista.innerHTML = itemsHtml;
-        document.getElementById('totalCarrito').innerText = 'S/. ' + total.toFixed(2);
+        document.getElementById('totalCarrito').innerText = '<?= MONEDA ?> ' + total.toFixed(2);
         btnConfirmar.disabled = false;
         btnVaciar.disabled = false;
     }
 
-    // Enviar al servidor (Controlador)
+    // Enviar al servidor
     function confirmarVenta() {
         let cliente = document.getElementById('selectCliente').value;
         if (cliente === '') {
@@ -260,21 +240,18 @@
         document.getElementById('inputCliente').value = cliente;
         document.getElementById('inputCarrito').value = JSON.stringify(carritoArray);
         
-        // 1. Enviamos el formulario (se abre en pestaña nueva por el target="_blank")
+        // Enviamos el formulario (se abre en pestaña nueva por el target="_blank")
         document.getElementById('formConfirmar').submit();
         
-        // 2. Limpiamos el carrito visualmente de inmediato
+        // Limpiamos el carrito visualmente
         carrito = {};
         renderizarCarrito();
 
-        // 3. Recargamos esta misma pestaña después de 1.5 segundos
-        // para que traiga el stock actualizado de la base de datos.
-        setTimeout(function() {
-            window.location.reload();
-        }, 1500); 
+        // Recargamos la pestaña después de 1.5 segundos para actualizar stock
+        setTimeout(function() { window.location.reload(); }, 1500); 
     }
 
-    // 🚀 Lógica para registrar cliente sin recargar la página
+    // Guardar cliente vía AJAX
     document.getElementById('btnGuardarCliente').addEventListener('click', function() {
         const form = document.getElementById('formNuevoCliente');
         const formData = new FormData(form);
@@ -287,25 +264,22 @@
         .then(response => response.json())
         .then(data => {
             if (data.exito) {
-                // Mostrar mensaje de éxito
                 alertaDiv.innerHTML = `<div class="alert alert-${data.tipo}">${data.mensaje}</div>`;
                 
-                // Agregar el nuevo cliente al selector
+                // Agregar nuevo cliente al selector
                 const select = document.getElementById('selectCliente');
                 const newOption = new Option(`${data.nombre} (${data.dni})`, data.dni, true, true);
                 select.add(newOption);
                 
-                // Actualizar la variable global
                 clienteSeleccionado = data.dni;
 
-                // Cerrar el modal después de 1.5 segundos y limpiar
+                // Cerrar el modal y limpiar
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
                     form.reset();
                     alertaDiv.innerHTML = '';
                 }, 1500);
             } else {
-                // Mostrar error
                 alertaDiv.innerHTML = `<div class="alert alert-${data.tipo}">${data.mensaje}</div>`;
             }
         })

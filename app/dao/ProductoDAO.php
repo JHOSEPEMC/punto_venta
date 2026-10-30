@@ -1,77 +1,64 @@
 <?php
 class ProductoDAO {
-    private $pdo;
+    private $pdo, $qb;
 
-    //Conecta a la base de datos PDO
     public function __construct() {
         $this->pdo = Conexion::conectar();
+        $this->qb = new QueryBuilder();
     }
 
-    //Devuelve todos los productos con su categoría (JOIN)
     public function obtener_todos_con_categoria() {
-        $sql = "SELECT productos.*, categorias.nombre_catg 
-                FROM productos 
-                LEFT JOIN categorias ON productos.id_categoria = categorias.id_categoria 
-                ORDER BY productos.id_producto ASC";
-        return $this->pdo->query($sql)->fetchAll();
+        $sql = "SELECT p.*, c.nombre_catg FROM productos p 
+                LEFT JOIN categorias c ON p.id_categoria = c.id_categoria ORDER BY p.id_producto ASC";
+        $res = $this->pdo->query($sql)->fetchAll();
+        return array_map(fn($fila) => new Producto($fila), $res);
     }
 
-    //Devuelve todos los productos sin categoría
-    public function obtener_todos() {
-        return $this->pdo->query("SELECT * FROM productos ORDER BY nombre_producto ASC")->fetchAll();
-    }
-
-    //Busca un producto por su ID
-    public function obtener_por_id($id) {
-        $stmt = $this->pdo->prepare("SELECT * FROM productos WHERE id_producto = ?");
+    public function obtener_por_id($id): ?Producto {
+        $stmt = $this->pdo->prepare("SELECT p.*, c.nombre_catg FROM productos p 
+                                    LEFT JOIN categorias c ON p.id_categoria = c.id_categoria 
+                                    WHERE p.id_producto = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        $fila = $stmt->fetch();
+        
+        return $fila ? new Producto($fila) : null;
     }
 
-    //Inserta un nuevo producto
     public function insertar($nombre, $id_categoria, $precio, $stock) {
         $stmt = $this->pdo->prepare("INSERT INTO productos (nombre_producto, id_categoria, precio_unitario, stock) VALUES (?, ?, ?, ?)");
         return $stmt->execute([$nombre, $id_categoria, $precio, $stock]);
     }
 
-    //Actualiza un producto existente
     public function actualizar($id, $nombre, $id_categoria, $precio, $stock) {
-        $stmt = $this->pdo->prepare("UPDATE productos SET nombre_producto = ?, id_categoria = ?, precio_unitario = ?, stock = ? WHERE id_producto = ?");
+        $stmt = $this->pdo->prepare("UPDATE productos SET nombre_producto=?, id_categoria=?, precio_unitario=?, stock=? WHERE id_producto=?");
         return $stmt->execute([$nombre, $id_categoria, $precio, $stock, $id]);
     }
 
-    //Elimina un producto
     public function eliminar($id) {
         $stmt = $this->pdo->prepare("DELETE FROM productos WHERE id_producto = ?");
         return $stmt->execute([$id]);
     }
 
-    //Verifica si un producto ya existe por nombre
     public function existe_nombre($nombre) {
         $stmt = $this->pdo->prepare("SELECT id_producto FROM productos WHERE nombre_producto = ?");
         $stmt->execute([$nombre]);
         return $stmt->fetch() ? true : false;
     }
 
-    //Descuenta stock (usado al vender)
     public function descontar_stock($id, $cantidad) {
         $stmt = $this->pdo->prepare("UPDATE productos SET stock = stock - ? WHERE id_producto = ?");
         return $stmt->execute([$cantidad, $id]);
     }
 
-    //Obtiene las categorías para el selector
     public function obtener_categorias() {
-        return $this->pdo->query("SELECT * FROM categorias")->fetchAll();
+        $res = $this->pdo->query("SELECT * FROM categorias")->fetchAll();
+        return array_map(fn($fila) => new Categoria($fila), $res);
     }
 
-    // Cuenta cuántos productos hay por cada categoría (para la gráfica)
     public function contar_productos_por_categoria() {
-        $sql = "
-            SELECT categorias.nombre_catg, COUNT(productos.id_producto) as cantidad
-            FROM productos
-            LEFT JOIN categorias ON productos.id_categoria = categorias.id_categoria
-            GROUP BY categorias.id_categoria
-        ";
+        $sql = "SELECT c.nombre_catg, COUNT(p.id_producto) as cantidad FROM productos p
+                LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+                GROUP BY c.id_categoria, c.nombre_catg";
         return $this->pdo->query($sql)->fetchAll();
     }
 }

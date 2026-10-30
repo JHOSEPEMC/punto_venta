@@ -5,7 +5,6 @@
     <h2 class="mb-4">Inventario de Productos</h2>
 
     <div class="row">
-        <!-- Gráfica Circular (Izquierda) -->
         <div class="col-lg-4 mb-4">
             <div class="card p-3 h-100">
                 <h6 class="fw-bold text-center">Distribución por Categoría</h6>
@@ -13,15 +12,13 @@
             </div>
         </div>
 
-        <!-- Tabla de Productos (Derecha) -->
         <div class="col-lg-8 mb-4">
             <div class="card p-3">
-                <!-- Botones de Filtro por Categoría -->
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <button class="btn btn-sm btn-naranja filtro-cat active" data-cat="todos">Todos</button>
                     <?php foreach ($categorias as $cat): ?>
-                        <button class="btn btn-sm btn-outline-secondary filtro-cat" data-cat="<?= strtolower(htmlspecialchars($cat['nombre_catg'])) ?>">
-                            <?= htmlspecialchars($cat['nombre_catg']) ?>
+                        <button class="btn btn-sm btn-outline-secondary filtro-cat" data-cat="<?= strtolower(htmlspecialchars($cat->nombre)) ?>">
+                            <?= htmlspecialchars($cat->nombre) ?>
                         </button>
                     <?php endforeach; ?>
                 </div>
@@ -39,12 +36,12 @@
                         </thead>
                         <tbody id="tablaInventario">
                             <?php foreach ($productos as $p): ?>
-                                <tr class="fila-producto" data-cat="<?= strtolower(htmlspecialchars($p['nombre_catg'])) ?>">
-                                    <td><?= $p['id_producto'] ?></td>
-                                    <td class="fw-bold"><?= htmlspecialchars($p['nombre_producto']) ?></td>
-                                    <td><span class="badge bg-secondary"><?= htmlspecialchars($p['nombre_catg']) ?></span></td>
-                                    <td>S/. <?= number_format($p['precio_unitario'], 2) ?></td>
-                                    <td><?= $p['stock'] ?></td>
+                                <tr class="fila-producto" data-cat="<?= strtolower(htmlspecialchars($p->nombre_categoria)) ?>">
+                                    <td><?= $p->id ?></td>
+                                    <td class="fw-bold"><?= htmlspecialchars($p->nombre) ?></td>
+                                    <td><span class="badge bg-secondary"><?= htmlspecialchars($p->nombre_categoria) ?></span></td>
+                                    <td><?= MONEDA ?> <?= number_format($p->precio, 2) ?></td>
+                                    <td><?= $p->stock ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -59,13 +56,11 @@
     // Lógica de filtros
     document.querySelectorAll('.filtro-cat').forEach(btn => {
         btn.addEventListener('click', function() {
-            // Cambiar estilo visual de los botones
             document.querySelectorAll('.filtro-cat').forEach(b => b.classList.remove('btn-naranja', 'active'));
             document.querySelectorAll('.filtro-cat').forEach(b => b.classList.add('btn-outline-secondary'));
             this.classList.remove('btn-outline-secondary');
             this.classList.add('btn-naranja', 'active');
 
-            // Filtrar filas
             let cat = this.getAttribute('data-cat');
             document.querySelectorAll('.fila-producto').forEach(fila => {
                 if (cat === 'todos' || fila.getAttribute('data-cat') === cat) {
@@ -80,7 +75,7 @@
     // Gráfica de Pie
     const ctxCat = document.getElementById('graficaCategorias').getContext('2d');
     new Chart(ctxCat, {
-        type: 'doughnut', // Tipo dona (se ve más moderno que el pie)
+        type: 'doughnut',
         data: {
             labels: <?= json_encode($labelsCat) ?>,
             datasets: [{
@@ -92,9 +87,7 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            plugins: { legend: { position: 'bottom' } }
         }
     });
 </script>

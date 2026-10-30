@@ -12,7 +12,7 @@
         <select class='i_s' required name="id_categoria">
             <option value="">-- Selecciona --</option>
             <?php foreach ($categorias as $cat): ?>
-                <option value="<?= $cat['id_categoria'] ?>"><?= htmlspecialchars($cat['nombre_catg']) ?></option>
+                <option value="<?= $cat->id ?>"><?= htmlspecialchars($cat->nombre) ?></option>
             <?php endforeach; ?>
         </select><br><br>
 
@@ -25,7 +25,7 @@
         <button type="submit" class="i_s">Guardar Producto</button>
     </form>
 
-    <?php if ($mensaje): ?>
+    <?php if (!empty($mensaje)): ?>
         <div class="alert alert-<?= $tipo ?> mt-3"><?= htmlspecialchars($mensaje) ?></div>
     <?php endif; ?>
 

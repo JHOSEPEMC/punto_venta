@@ -4,23 +4,21 @@ class Conexion {
     private $pdo;
 
     private function __construct() {
-        $host = 'localhost';
-        $db   = 'minimarket';
-        $user = 'Maravi_Jhosep'; // Administrador de la base de datos
-        $pass = 'V4St8TEaz2VGlrTSpFFJ2mBOQP6oTHtKyC/EHP22Yv6Ffe2y5dHxuD00HlSoVm70'; // Contraseña del Administrador de la base de datos
-        $charset = 'utf8mb4';
-
-        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-        $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
+        $config = Config::db();
+        $driver = $config['driver'];
 
         try {
-            $this->pdo = new PDO($dsn, $user, $pass, $options);
+            if ($driver === 'sqlite') {
+                $this->pdo = new PDO("sqlite:" . $config['sqlite_path']);
+            } else {
+                $dsn = "$driver:host={$config['host']};port={$config['port']};dbname={$config['database']}";
+                if ($driver === 'mysql') $dsn .= ";charset={$config['charset']}";
+                $this->pdo = new PDO($dsn, $config['username'], $config['password']);
+            }
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            die('Error de conexión: ' . $e->getMessage());
+            die('Error de conexión (' . $driver . '): ' . $e->getMessage());
         }
     }
 

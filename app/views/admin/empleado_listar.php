@@ -20,11 +20,11 @@
             <tbody>
                 <?php foreach ($empleados as $e): ?>
                     <tr>
-                        <td class="fw-bold"><?= htmlspecialchars($e['dni_empleado']) ?></td>
-                        <td><?= htmlspecialchars($e['nombre_apellido']) ?></td>
-                        <td><?= htmlspecialchars($e['telefono']) ?></td>
+                        <td class="fw-bold"><?= htmlspecialchars($e->dni) ?></td>
+                        <td><?= htmlspecialchars($e->nombre) ?></td>
+                        <td><?= htmlspecialchars($e->telefono) ?></td>
                         <td class="text-center">
-                            <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarEmpleado&dni=<?= $e['dni_empleado'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar empleado?');">🗑️</a>
+                            <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarEmpleado&dni=<?= $e->dni ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar empleado?');">🗑️</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

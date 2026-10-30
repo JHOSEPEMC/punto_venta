@@ -8,10 +8,8 @@ class ExcelControlador {
         if (session_status() === PHP_SESSION_NONE) session_start();
         require_once VENDOR_PATH . '/autoload.php';
 
-        $mesFiltro = isset($_GET['mes']) ? trim($_GET['mes']) : '';
-        
-        $boletaDAO = new BoletaDAO();
-        $boletas = $boletaDAO->obtener_por_mes($mesFiltro);
+        $mesFiltro = trim($_GET['mes'] ?? '');
+        $boletas = (new BoletaDAO())->obtener_por_mes($mesFiltro);
 
         $spreadsheet = new Spreadsheet();
         $hoja = $spreadsheet->getActiveSheet();
@@ -23,28 +21,25 @@ class ExcelControlador {
         $hoja->setCellValue('D1', 'EMPLEADO');
         $hoja->setCellValue('E1', 'TOTAL');
 
-        $estiloEncabezado = [
+        $hoja->getStyle('A1:E1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FF7800']],
-        ];
-        $hoja->getStyle('A1:E1')->applyFromArray($estiloEncabezado);
+        ]);
 
         $fila = 2;
-        foreach ($boletas as $b) { // 🚀 foreach en lugar de while
-            $cliente = $b['cliente'] !== null ? $b['cliente'] : $b['dni_cliente'] . ' | fuera del sistema';
-            $empleado = $b['empleado'] !== null ? $b['empleado'] : 'fuera del sistema';
+        foreach ($boletas as $b) { // $b es Objeto
+            $cliente = $b->cliente_nombre !== null ? $b->cliente_nombre : $b->dni_cliente . ' | fuera del sistema';
+            $empleado = $b->empleado_nombre !== null ? $b->empleado_nombre : 'fuera del sistema';
 
-            $hoja->setCellValue('A' . $fila, $b['numero_boleta']);
-            $hoja->setCellValue('B' . $fila, $b['fecha_emision']);
+            $hoja->setCellValue('A' . $fila, $b->numero_boleta);
+            $hoja->setCellValue('B' . $fila, $b->fecha_emision);
             $hoja->setCellValue('C' . $fila, $cliente);
             $hoja->setCellValue('D' . $fila, $empleado);
-            $hoja->setCellValue('E' . $fila, $b['total']);
+            $hoja->setCellValue('E' . $fila, $b->total);
             $fila++;
         }
 
-        foreach (range('A', 'E') as $col) {
-            $hoja->getColumnDimension($col)->setAutoSize(true);
-        }
+        foreach (range('A', 'E') as $col) $hoja->getColumnDimension($col)->setAutoSize(true);
 
         $sufijo = $mesFiltro !== '' ? '_' . $mesFiltro : '';
         $nombreArchivo = 'boletas' . $sufijo . '_' . date('Ymd_His') . '.xlsx';
@@ -53,8 +48,7 @@ class ExcelControlador {
         header('Content-Disposition: attachment; filename="' . $nombreArchivo . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('php://output');
+        (new Xlsx($spreadsheet))->save('php://output');
         exit;
     }
 }

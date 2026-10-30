@@ -23,23 +23,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
-                    // 🚀 Bandera para saber si hay cajas
-                    $hayCajas = false; 
-                    
-                    foreach ($cajas as $c): 
-                        $hayCajas = true;
-                    ?>
+                    <?php $hayCajas = false; foreach ($cajas as $c): $hayCajas = true; ?>
                         <tr>
-                            <td class="fw-bold"><?= htmlspecialchars($c['empleado']) ?></td>
-                            <td>S/. <?= number_format($c['sencillo_inicial'], 2) ?></td>
-                            <td class="text-success fw-bold">S/. <?= number_format($c['total_ventas'], 2) ?></td>
-                            <td><?= date('d/m H:i', strtotime($c['hora_apertura'])) ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($c->empleado) ?></td>
+                            <td><?= MONEDA ?> <?= number_format($c->sencillo_inicial, 2) ?></td>
+                            <td class="text-success fw-bold"><?= MONEDA ?> <?= number_format($c->total_ventas, 2) ?></td>
+                            <td><?= date('d/m H:i', strtotime($c->hora_apertura)) ?></td>
                             <td><span class="badge bg-success">Abierta</span></td>
                         </tr>
                     <?php endforeach; ?>
 
-                    <!-- 🚀 Si no hubo cajas, mostramos el mensaje sin usar num_rows -->
                     <?php if (!$hayCajas): ?>
                         <tr><td colspan="5" class="text-center text-muted">No hay cajas activas en este momento.</td></tr>
                     <?php endif; ?>

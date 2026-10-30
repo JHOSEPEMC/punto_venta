@@ -26,22 +26,20 @@
                 <tbody>
                     <?php foreach ($productos as $p): ?>
                         <tr>
-                            <td class="text-muted">#<?= $p['id_producto'] ?></td>
-                            <td class="fw-bold"><?= htmlspecialchars($p['nombre_producto']) ?></td>
-                            
-                            <!-- En app/views/admin/producto_listar.php <td><span class="badge bg-secondary"><?= htmlspecialchars($p['id_categoria']) ?></span></td>-->
-                            <td><span class="badge bg-secondary"><?= htmlspecialchars($p['nombre_catg'] ?? $p['id_categoria']) ?></span></td>
-                            <td>S/. <?= number_format($p['precio_unitario'], 2) ?></td>
+                            <td class="text-muted">#<?= $p->id ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($p->nombre) ?></td>
+                            <td><span class="badge bg-secondary"><?= htmlspecialchars($p->nombre_categoria) ?></span></td>
+                            <td><?= MONEDA ?> <?= number_format($p->precio, 2) ?></td>
                             <td>
-                                <?php if($p['stock'] <= 5): ?>
-                                    <span class="badge bg-danger"><?= $p['stock'] ?> (Bajo)</span>
+                                <?php if($p->stock <= 5): ?>
+                                    <span class="badge bg-danger"><?= $p->stock ?> (Bajo)</span>
                                 <?php else: ?>
-                                    <span class="badge bg-success"><?= $p['stock'] ?></span>
+                                    <span class="badge bg-success"><?= $p->stock ?></span>
                                 <?php endif; ?>
                             </td>
                             <td class="text-center">
-                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarProducto&id=<?= $p['id_producto'] ?>" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
-                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarProducto&id=<?= $p['id_producto'] ?>"
+                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarProducto&id=<?= $p->id ?>" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
+                                <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=eliminarProducto&id=<?= $p->id ?>"
                                     class="btn btn-sm btn-outline-danger"
                                     onclick="return confirm('¿Seguro que quieres eliminar este producto?');" title="Eliminar">🗑️</a>
                             </td>
@@ -52,5 +50,4 @@
         </div>
     </div>
 </div>
-
 <?php include __DIR__ . '/../partials/footer.php'; ?>

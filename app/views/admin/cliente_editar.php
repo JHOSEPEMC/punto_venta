@@ -4,22 +4,27 @@
 <div class="container mt-4">
     <h2>Editar Cliente</h2>
 
+    <?php 
+    // 🚀 Normalizamos la variable: si no es un objeto válido, la forzamos a null
+    $cliente = (isset($cliente) && is_object($cliente)) ? $cliente : null; 
+    ?>
+
     <form action="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarCliente" method="POST">
-        <input type="hidden" name="dni" value="<?= htmlspecialchars($cliente['dni_cliente']) ?>">
+        <input type="hidden" name="dni" value="<?= htmlspecialchars($cliente?->dni ?? '') ?>">
 
         <span>DNI (no editable): </span><br>
-        <input class='i_s' type="text" disabled value="<?= htmlspecialchars($cliente['dni_cliente']) ?>"><br><br>
+        <input class='i_s' type="text" disabled value="<?= htmlspecialchars($cliente?->dni ?? '') ?>"><br><br>
 
         <span>Nombre y apellido: </span><br>
-        <input class='i_s' type="text" required name="nombre" value="<?= htmlspecialchars($cliente['nombre_apellido']) ?>"><br><br>
+        <input class='i_s' type="text" required name="nombre" value="<?= htmlspecialchars($cliente?->nombre ?? '') ?>"><br><br>
 
         <span>Teléfono: </span><br>
-        <input class='i_s' type="text" required name="telefono" value="<?= htmlspecialchars($cliente['telefono']) ?>"><br><br>
+        <input class='i_s' type="text" required name="telefono" value="<?= htmlspecialchars($cliente?->telefono ?? '') ?>"><br><br>
 
         <button type="submit" class="i_s">Actualizar Cliente</button>
     </form>
 
-    <?php if ($mensaje): ?>
+    <?php if (!empty($mensaje)): ?>
         <div class="alert alert-<?= $tipo ?> mt-3"><?= htmlspecialchars($mensaje) ?></div>
     <?php endif; ?>
 

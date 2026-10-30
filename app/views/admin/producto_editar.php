@@ -4,32 +4,37 @@
 <div class="container mt-4">
     <h2>Editar Producto</h2>
 
+    <?php 
+    // 🚀 Normalizamos la variable: si no es un objeto válido, la forzamos a null
+    $producto = (isset($producto) && is_object($producto)) ? $producto : null; 
+    ?>
+
     <form action="<?= BASE_URL ?>index.php?controller=adminPanel&action=editarProducto" method="POST">
-        <input type="hidden" name="id" value="<?= $producto['id_producto'] ?>">
+        <!-- Usamos (string) para evitar advertencias de tipo al imprimir números -->
+        <input type="hidden" name="id" value="<?= htmlspecialchars((string)($producto?->id ?? '')) ?>">
 
         <span>Nombre del producto: </span><br>
-        <input class='i_s' type="text" required name="nombre" value="<?= htmlspecialchars($producto['nombre_producto']) ?>"><br><br>
+        <input class='i_s' type="text" required name="nombre" value="<?= htmlspecialchars($producto?->nombre ?? '') ?>"><br><br>
 
         <span>Categoría: </span><br>
         <select class='i_s' required name="id_categoria">
             <?php foreach ($categorias as $cat): ?>
-                <option value="<?= $cat['id_categoria'] ?>"
-                    <?= $cat['id_categoria'] == $producto['id_categoria'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($cat['nombre_catg']) ?>
+                <option value="<?= $cat->id ?>" <?= $cat->id == ($producto?->id_categoria ?? null) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($cat->nombre) ?>
                 </option>
             <?php endforeach; ?>
         </select><br><br>
 
         <span>Precio unitario: </span><br>
-        <input class='i_s' type="number" step="0.01" min="0" required name="precio" value="<?= $producto['precio_unitario'] ?>"><br><br>
+        <input class='i_s' type="number" step="0.01" min="0" required name="precio" value="<?= htmlspecialchars((string)($producto?->precio ?? '')) ?>"><br><br>
 
         <span>Stock: </span><br>
-        <input class='i_s' type="number" min="0" required name="stock" value="<?= $producto['stock'] ?>"><br><br>
+        <input class='i_s' type="number" min="0" required name="stock" value="<?= htmlspecialchars((string)($producto?->stock ?? '')) ?>"><br><br>
 
         <button type="submit" class="i_s">Actualizar Producto</button>
     </form>
 
-    <?php if ($mensaje): ?>
+    <?php if (!empty($mensaje)): ?>
         <div class="alert alert-<?= $tipo ?> mt-3"><?= htmlspecialchars($mensaje) ?></div>
     <?php endif; ?>
 

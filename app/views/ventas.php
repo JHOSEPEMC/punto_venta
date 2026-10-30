@@ -1,31 +1,11 @@
 <?php include __DIR__ . '/partials/header.php'; ?>
 <?php include __DIR__ . '/partials/nav.php'; ?>
 
-<!-- 🚀 CARGAR LA BOLETA EN LA PESTAÑA QUE YA SE ABIÓ -->
-<?php if (isset($_SESSION['boleta_nueva'])): ?>
-    <script>
-        // La URL de la boleta
-        const urlBoleta = "<?= BASE_URL ?>index.php?controller=boleta&action=mostrar&id=<?= $_SESSION['boleta_nueva'] ?>";
-        
-        // Si la pestaña 'BoletaVenta' ya está abierta por el JS de la caja, le decimos que navegue
-        if (window.ventanaBoleta && !window.ventanaBoleta.closed) {
-            window.ventanaBoleta.location.href = urlBoleta;
-        } else {
-            // Si por alguna razón no se abrió, intentamos abrirla (puede ser bloqueado)
-            window.open(urlBoleta, 'BoletaVenta');
-        }
-    </script>
-    <?php unset($_SESSION['boleta_nueva']); // Limpiamos la sesión ?>
-<?php endif; ?>
-
 <div class="container-fluid mt-4">
     <h2 class="mb-4">Historial de Ventas</h2>
 
-    <!-- Filtros -->
     <div class="card mb-4 p-3 shadow-sm border-0">
         <div class="row align-items-end">
-            
-            <!-- Buscador por Boleta (Izquierda) -->
             <div class="col-md-4 mb-2">
                 <label class="form-label fw-bold small text-muted">Buscar Boleta</label>
                 <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
@@ -36,7 +16,6 @@
                 </form>
             </div>
 
-            <!-- 🚀 FILTRO POR MES RESTAURADO (Centro) -->
             <div class="col-md-3 mb-2">
                 <label class="form-label fw-bold small text-muted">Filtrar por Mes</label>
                 <form action="<?= BASE_URL ?>index.php" method="GET" class="d-flex">
@@ -54,27 +33,21 @@
                 </form>
             </div>
 
-            <!-- Botones de acción (Derecha) -->
             <div class="col-md-5 text-end mb-2">
-                
-                <!-- BOTÓN DE ADMIN -->
                 <?php if (isset($_SESSION['AdminDni'])): ?>
                     <a href="<?= BASE_URL ?>index.php?controller=adminPanel&action=mostrar" class="btn btn-secondary">← Panel Admin</a>
                 <?php endif; ?>
-                
                 <a href="<?= BASE_URL ?>index.php?controller=excel&action=ventas&mes=<?= urlencode($mesFiltro ?? '') ?>" class="btn btn-success">📊 Excel</a>
                 <a href="<?= BASE_URL ?>index.php?controller=ventas&action=mostrar" class="btn btn-outline-danger">🔄 Limpiar</a>
             </div>
         </div>
     </div>
 
-    <!-- Gráfica de Ingresos -->
     <div class="card p-4 mb-4 shadow-sm border-0">
         <h5 class="fw-bold mb-3">Tendencia de Ingresos (Últimos 7 días)</h5>
         <canvas id="graficaIngresos" height="80"></canvas>
     </div>
 
-    <!-- Tabla de Boletas -->
     <div class="card p-4 shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -91,13 +64,13 @@
                 <tbody>
                     <?php foreach ($boletas as $b): ?>
                         <tr>
-                            <td class="fw-bold"><?= htmlspecialchars($b['numero_boleta']) ?></td>
-                            <td><?= date('d/m/Y H:i', strtotime($b['fecha_emision'])) ?></td>
-                            <td><?= $b['cliente'] === null ? 'Fuera del sistema' : htmlspecialchars($b['cliente']) ?></td>
-                            <td><?= $b['empleado'] === null ? 'Fuera del sistema' : htmlspecialchars($b['empleado']) ?></td>
-                            <td class="fw-bold text-naranja">S/ <?= number_format($b['total'], 2) ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($b->numero_boleta) ?></td>
+                            <td><?= date('d/m/Y H:i', strtotime($b->fecha_emision)) ?></td>
+                            <td><?= $b->cliente_nombre === null ? 'Fuera del sistema' : htmlspecialchars($b->cliente_nombre) ?></td>
+                            <td><?= $b->empleado_nombre === null ? 'Fuera del sistema' : htmlspecialchars($b->empleado_nombre) ?></td>
+                            <td class="fw-bold text-naranja"><?= MONEDA ?> <?= number_format($b->total, 2) ?></td>
                             <td>
-                                <a href="<?= BASE_URL ?>index.php?controller=boleta&action=mostrar&id=<?= $b['id_boleta'] ?>" target="_blank" class="btn btn-sm btn-outline-danger">PDF</a>
+                                <a href="<?= BASE_URL ?>index.php?controller=boleta&action=mostrar&id=<?= $b->id ?>" target="_blank" class="btn btn-sm btn-outline-danger">PDF</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -108,14 +81,13 @@
 </div>
 
 <script>
-    // Configuración de la gráfica de líneas
     const ctx = document.getElementById('graficaIngresos').getContext('2d');
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: <?= json_encode($labels) ?>,
             datasets: [{
-                label: 'Ingresos (S/.)',
+                label: 'Ingresos',
                 data: <?= json_encode($valores) ?>,
                 borderColor: '#FF7800',
                 backgroundColor: 'rgba(255, 120, 0, 0.1)',
